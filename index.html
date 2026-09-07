@@ -19,13 +19,13 @@
                 <h1 class="text-3xl font-bold flex items-center gap-3">
                     <i class="fa-solid fa-tv text-yellow-300"></i> 香港免費電視節目表
                 </h1>
-                <p class="text-blue-100 text-base mt-1">輕鬆查看各大免費電視台的直播與精彩節目</p>
+                <p class="text-blue-100 text-base mt-1">輕鬆查看各大免費電視台的直播與未來7日節目預告</p>
             </div>
             <!-- Live Clock & Date -->
             <div class="flex items-center gap-4 bg-blue-800 border border-blue-600 px-5 py-3 rounded-xl text-base shadow-inner">
                 <div class="flex items-center gap-2">
                     <i class="fa-regular fa-calendar text-yellow-300"></i>
-                    <span x-text="formattedDate" class="font-medium"></span>
+                    <span x-text="formattedHeaderDate" class="font-medium"></span>
                 </div>
                 <div class="border-l border-blue-600 pl-4 flex items-center gap-2 font-mono font-bold text-lg text-yellow-300">
                     <i class="fa-regular fa-clock"></i>
@@ -38,7 +38,27 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-grow w-full">
         
-        <!-- Controls & Channel Filter -->
+        <!-- 7-Day Selector Bar (Elderly Friendly, Large Buttons) -->
+        <div class="mb-8 bg-white p-4 rounded-2xl shadow-sm border border-gray-200">
+            <h2 class="text-base font-bold text-gray-700 mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-days text-blue-700"></i> 選擇查看日期 (7日節目預告)
+            </h2>
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                <template x-for="day in availableDays" :key="day.dateStr">
+                    <button @click="selectedDateStr = day.dateStr"
+                        :class="selectedDateStr === day.dateStr ? 'bg-blue-700 text-white shadow-md border-blue-700 scale-105' : 'bg-gray-50 text-gray-800 hover:bg-gray-100 border-gray-300'"
+                        class="px-4 py-3 rounded-xl border-2 text-center transition flex flex-col items-center justify-center">
+                        <span class="text-xs font-bold uppercase opacity-90" x-text="day.dayOfWeek"></span>
+                        <span class="text-lg font-extrabold mt-0.5" x-text="day.displayDate"></span>
+                        <span class="text-[11px] mt-1 font-medium px-2 py-0.5 rounded"
+                            :class="selectedDateStr === day.dateStr ? 'bg-blue-800 text-yellow-200' : 'bg-gray-200 text-gray-700'"
+                            x-text="day.isToday ? '今日' : ''"></span>
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        <!-- Controls & Search -->
         <div class="flex flex-col lg:flex-row justify-between items-center gap-4 mb-8 bg-white p-4 rounded-2xl shadow-sm border border-gray-200">
             <!-- Search Bar -->
             <div class="relative w-full lg:w-96">
@@ -49,10 +69,9 @@
                     class="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 text-lg shadow-inner">
             </div>
 
-            <div class="flex gap-3 w-full lg:w-auto">
-                <button class="bg-blue-700 text-white shadow-md px-6 py-3 rounded-xl text-base font-bold transition flex-1 sm:flex-none">
-                    香港免費電視台 (CH 31 - 99)
-                </button>
+            <div class="flex items-center gap-2 text-base font-bold text-blue-800 bg-blue-50 px-4 py-3 rounded-xl border border-blue-200 w-full lg:w-auto justify-center">
+                <i class="fa-solid fa-circle-info"></i>
+                <span x-text="'正在顯示: ' + getSelectedDateLabel()"></span>
             </div>
         </div>
 
@@ -81,22 +100,22 @@
                     <div class="divide-y-2 divide-gray-100 flex-grow">
                         <template x-for="program in channel.programs" :key="program.time">
                             <div class="p-5 transition flex items-start gap-4"
-                                :class="isCurrentProgram(program, channel.programs) ? 'bg-yellow-50 border-l-8 border-yellow-500' : 'hover:bg-gray-50'">
+                                :class="isTodaySelected() && isCurrentProgram(program, channel.programs) ? 'bg-yellow-50 border-l-8 border-yellow-500' : 'hover:bg-gray-50'">
                                 <span class="text-sm font-mono font-bold px-3 py-1.5 rounded-lg mt-0.5 flex-shrink-0 shadow-sm"
-                                    :class="isCurrentProgram(program, channel.programs) ? 'bg-yellow-500 text-gray-900' : 'bg-gray-200 text-gray-800'"
+                                    :class="isTodaySelected() && isCurrentProgram(program, channel.programs) ? 'bg-yellow-500 text-gray-900' : 'bg-gray-200 text-gray-800'"
                                     x-text="program.time"></span>
                                 
                                 <div class="flex-grow">
                                     <div class="flex items-center flex-wrap gap-2 mb-1">
                                         <h3 class="text-lg font-bold text-gray-900" x-text="program.title"></h3>
-                                        <!-- Live Badge -->
-                                        <template x-if="isCurrentProgram(program, channel.programs)">
+                                        <!-- Live Badge (Only if Today and Currently Airing) -->
+                                        <template x-if="isTodaySelected() && isCurrentProgram(program, channel.programs)">
                                             <span class="inline-flex items-center gap-1.5 bg-red-600 text-white text-xs font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm animate-pulse">
                                                 <span class="w-2 h-2 bg-white rounded-full"></span> 現正直播
                                             </span>
                                         </template>
-                                        <!-- Upcoming Badge -->
-                                        <template x-if="isUpcomingProgram(program)">
+                                        <!-- Upcoming Badge (Only if Today and Upcoming) -->
+                                        <template x-if="isTodaySelected() && isUpcomingProgram(program)">
                                             <span class="text-xs bg-gray-200 text-gray-700 font-bold px-2 py-0.5 rounded-md">
                                                 稍后播放
                                             </span>
@@ -120,16 +139,40 @@
 
     <!-- Footer -->
     <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-sm text-gray-600">
-        <p>香港免費電視節目表 &bull; 長者友善大字版 &bull; 適用於手機及平板電腦</p>
+        <p>香港免費電視節目表 &bull; 7日未來節目預告 &bull; 長者友善大字版</p>
     </footer>
 
     <!-- Application Script -->
     <script>
         function tvApp() {
+            // Generate 7 days starting from today
+            const today = new Date();
+            const daysList = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(today);
+                d.setDate(today.getDate() + i);
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                const dateStr = `${year}-${month}-${day}`;
+                
+                const dayOfWeekOptions = { weekday: 'short' };
+                const displayDateOptions = { month: 'numeric', day: 'numeric' };
+                
+                daysList.push({
+                    dateStr: dateStr,
+                    dayOfWeek: d.toLocaleDateString('zh-HK', dayOfWeekOptions),
+                    displayDate: d.toLocaleDateString('zh-HK', displayDateOptions),
+                    isToday: i === 0
+                });
+            }
+
             return {
                 loading: true,
                 searchQuery: '',
                 now: new Date(),
+                availableDays: daysList,
+                selectedDateStr: daysList[0].dateStr,
                 channels: [],
 
                 init() {
@@ -279,12 +322,21 @@
                     }, 300);
                 },
 
-                get formattedDate() {
+                get formattedHeaderDate() {
                     return this.now.toLocaleDateString('zh-HK', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
                 },
 
                 get currentTimeString() {
                     return this.now.toLocaleTimeString('zh-HK', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                },
+
+                getSelectedDateLabel() {
+                    const found = this.availableDays.find(d => d.dateStr === this.selectedDateStr);
+                    return found ? `${found.displayDate} (${found.dayOfWeek})` : this.selectedDateStr;
+                },
+
+                isTodaySelected() {
+                    return this.selectedDateStr === this.availableDays[0].dateStr;
                 },
 
                 timeToMinutes(timeStr) {
@@ -297,6 +349,7 @@
                 },
 
                 isCurrentProgram(program, allPrograms) {
+                    if (!this.isTodaySelected()) return false;
                     const currentMins = this.getCurrentTimeMinutes();
                     const index = allPrograms.findIndex(p => p.time === program.time);
                     const startTime = this.timeToMinutes(program.time);
@@ -310,6 +363,7 @@
                 },
 
                 isUpcomingProgram(program) {
+                    if (!this.isTodaySelected()) return false;
                     const currentMins = this.getCurrentTimeMinutes();
                     const startTime = this.timeToMinutes(program.time);
                     return startTime > currentMins;
