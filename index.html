@@ -45,13 +45,13 @@
                 <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 text-lg">
                     <i class="fa-solid fa-search"></i>
                 </span>
-                <input type="text" x-model="searchQuery" placeholder="輸入節目名稱或頻道..." 
+                <input type="text" x-model="searchQuery" placeholder="輸入節目名稱、頻道名稱或台號..." 
                     class="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 text-lg shadow-inner">
             </div>
 
             <div class="flex gap-3 w-full lg:w-auto">
                 <button class="bg-blue-700 text-white shadow-md px-6 py-3 rounded-xl text-base font-bold transition flex-1 sm:flex-none">
-                    免費電視頻道
+                    香港免費電視台 (CH 31 - 99)
                 </button>
             </div>
         </div>
@@ -140,6 +140,71 @@
                     setTimeout(() => {
                         this.channels = [
                             {
+                                id: 'rthk_31',
+                                name: '港台電視 31 (RTHK 31)',
+                                channelNumber: '31',
+                                programs: [
+                                    { time: '18:30', title: '香港電台新聞', description: '公共廣播新聞報道。' },
+                                    { time: '19:30', title: '文化長廊', description: '展示本地藝術、文化及歷史傳承。' },
+                                    { time: '20:30', title: '香港故事', description: '細訴香港人的奮鬥與生活點滴。' },
+                                    { time: '22:00', title: '國際自然與科學', description: '探索大自然奧秘與世界科學發展。' }
+                                ]
+                            },
+                            {
+                                id: 'rthk_32',
+                                name: '港台電視 32 (RTHK 32)',
+                                channelNumber: '32',
+                                programs: [
+                                    { time: '18:00', title: '立法會會議直播 / 綜合資訊', description: '轉播立法會會議及各類重要公共實況。' },
+                                    { time: '21:00', title: '體育及社區活動直播', description: '直播各項本地體育及大型社區活動。' }
+                                ]
+                            },
+                            {
+                                id: 'rthk_33',
+                                name: '港台電視 33 (RTHK 33)',
+                                channelNumber: '33',
+                                programs: [
+                                    { time: '18:00', title: '中央電視台綜合頻道 (CCTV-1)', description: '轉播央視綜合節目及新聞內容。' },
+                                    { time: '21:00', title: '精選內地紀實與劇集', description: '高質素國內製作之劇集與紀錄片。' }
+                                ]
+                            },
+                            {
+                                id: 'rthk_35',
+                                name: '港台電視 35 (RTHK 35)',
+                                channelNumber: '35',
+                                programs: [
+                                    { time: '18:00', title: '國家地理與人文節目', description: '展示宏大自然風光與歷史人文故事。' }
+                                ]
+                            },
+                            {
+                                id: 'hoy_76',
+                                name: 'HOY Infotainment (香港國際財經台)',
+                                channelNumber: '76',
+                                programs: [
+                                    { time: '18:00', title: '財經及國際新聞', description: '跟進全球股市動向與外國時事。' },
+                                    { time: '20:00', title: '國際商業匯報', description: '專家分析經濟形勢與商業趨勢。' }
+                                ]
+                            },
+                            {
+                                id: 'hoy_77',
+                                name: 'HOY TV',
+                                channelNumber: '77',
+                                programs: [
+                                    { time: '18:00', title: 'HOY 晚間新聞', description: '緊貼本地民生及國際視野。' },
+                                    { time: '19:00', title: '環球滋味遊', description: '介紹各地特色美食與風光。' },
+                                    { time: '20:30', title: '人文紀實系列', description: '發掘動人故事及文化歷史。' },
+                                    { time: '22:00', title: '精選外購劇', description: '追看性價比高的大熱劇集。' }
+                                ]
+                            },
+                            {
+                                id: 'hoy_78',
+                                name: 'HOY 直播 / 體育台',
+                                channelNumber: '78',
+                                programs: [
+                                    { time: '18:00', title: '體育賽事與綜藝特備', description: '聯播多元體育競技與娛樂節目。' }
+                                ]
+                            },
+                            {
                                 id: 'tvb_jade',
                                 name: '翡翠台 (TVB Jade)',
                                 channelNumber: '81',
@@ -152,14 +217,12 @@
                                 ]
                             },
                             {
-                                id: 'tvb_pearl',
-                                name: '明珠台 (TVB Pearl)',
-                                channelNumber: '84',
+                                id: 'tvb_j2_finance',
+                                name: 'TVB Plus (82台)',
+                                channelNumber: '82',
                                 programs: [
-                                    { time: '18:00', title: '金融資訊 / 兒童節目', description: '精選英文兒童節目或財經匯報。' },
-                                    { time: '19:30', title: '明珠檔案 (Pearl Magazine)', description: '深入探討社會及國際議題的英文專題節目。' },
-                                    { time: '20:00', title: '明珠930電影 (Pearl Movie)', description: '播放荷里活猛片及環球得獎電影。' },
-                                    { time: '22:30', title: '晚間英文新聞 (Financial News / News Report)', description: '國際視野的英語新聞報道。' }
+                                    { time: '18:00', title: '年青人綜藝 / 資訊', description: '多元化消閒、旅遊及潮流節目。' },
+                                    { time: '20:30', title: '深夜特備綜藝', description: '益智及互動娛樂節目。' }
                                 ]
                             },
                             {
@@ -174,6 +237,33 @@
                                 ]
                             },
                             {
+                                id: 'tvb_pearl',
+                                name: '明珠台 (TVB Pearl)',
+                                channelNumber: '84',
+                                programs: [
+                                    { time: '18:00', title: '金融資訊 / 兒童節目', description: '精選英文兒童節目或財經匯報。' },
+                                    { time: '19:30', title: '明珠檔案 (Pearl Magazine)', description: '深入探討社會及國際議題的英文專題節目。' },
+                                    { time: '20:00', title: '明珠930電影 (Pearl Movie)', description: '播放荷里活猛片及環球得獎電影。' },
+                                    { time: '22:30', title: '晚間英文新聞 (News Report)', description: '國際視野的英語新聞報道。' }
+                                ]
+                            },
+                            {
+                                id: 'tvb_cn_news',
+                                name: '無綫財經 資訊台 / CCTV-13 (85台)',
+                                channelNumber: '85',
+                                programs: [
+                                    { time: '18:00', title: '財經快訊與政經直擊', description: '緊貼金融市場走勢與國家新聞。' }
+                                ]
+                            },
+                            {
+                                id: 'viutv_96',
+                                name: 'ViuTVsix',
+                                channelNumber: '96',
+                                programs: [
+                                    { time: '18:00', title: '英語綜合及生活節目', description: '外購英語劇集、紀錄片及音樂節目。' }
+                                ]
+                            },
+                            {
                                 id: 'viutv_99',
                                 name: 'ViuTV',
                                 channelNumber: '99',
@@ -182,28 +272,6 @@
                                     { time: '19:30', title: '真人騷與綜藝節目', description: '輕鬆具創意的娛樂及紀實節目。' },
                                     { time: '21:30', title: '原創劇集', description: '題材嶄新的當代劇作。' },
                                     { time: '22:30', title: '深宵傾談與消閒', description: '輕鬆訪談及生活消閒節目。' }
-                                ]
-                            },
-                            {
-                                id: 'hoichun_77',
-                                name: 'HOY TV',
-                                channelNumber: '77',
-                                programs: [
-                                    { time: '18:00', title: 'HOY 晚間新聞', description: '緊貼本地民生及國際視野。' },
-                                    { time: '19:00', title: '環球滋味遊', description: '介紹各地特色美食與風光。' },
-                                    { time: '20:30', title: '人文紀實系列', description: '發掘動人故事及文化歷史。' },
-                                    { time: '22:00', title: '精選外購劇', description: '追看性價比高的大熱劇集。' }
-                                ]
-                            },
-                            {
-                                id: 'rthk_31',
-                                name: '港台電視 31 (RTHK 31)',
-                                channelNumber: '31',
-                                programs: [
-                                    { time: '18:30', title: '香港電台新聞', description: '公共廣播新聞報道。' },
-                                    { time: '19:30', title: '文化長廊', description: '展示本地藝術、文化及歷史傳承。' },
-                                    { time: '20:30', title: '香港故事', description: '細訴香港人的奮鬥與生活點滴。' },
-                                    { time: '22:00', title: '國際自然與科學', description: '探索大自然奧秘與世界科學發展。' }
                                 ]
                             }
                         ];
@@ -251,6 +319,7 @@
                     return this.channels.filter(channel => {
                         const query = this.searchQuery.toLowerCase();
                         return channel.name.toLowerCase().includes(query) || 
+                            channel.channelNumber.toLowerCase().includes(query) ||
                             channel.programs.some(p => p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
                     });
                 }
