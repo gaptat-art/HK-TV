@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HK TV Program Schedule</title>
+    <title>HK TV Program Schedule - Live & Upcoming</title>
     <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js for lightweight reactivity -->
@@ -19,12 +19,18 @@
                 <h1 class="text-2xl font-bold flex items-center gap-2">
                     <i class="fa-solid fa-tv"></i> HK TV Program Guide
                 </h1>
-                <p class="text-indigo-200 text-sm mt-1">Live program schedules for Hong Kong television channels</p>
+                <p class="text-indigo-200 text-sm mt-1">Live, current, and upcoming program schedules for Hong Kong</p>
             </div>
-            <!-- Date Selector -->
-            <div class="flex items-center gap-2 bg-indigo-700 px-3 py-2 rounded-lg text-sm">
-                <i class="fa-regular fa-calendar"></i>
-                <span x-text="formattedDate"></span>
+            <!-- Live Clock & Date Selector -->
+            <div class="flex items-center gap-4 bg-indigo-700 px-4 py-2 rounded-lg text-sm shadow-inner">
+                <div class="flex items-center gap-2">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span x-text="formattedDate"></span>
+                </div>
+                <div class="border-l border-indigo-500 pl-3 flex items-center gap-2 font-mono font-semibold">
+                    <i class="fa-regular fa-clock text-indigo-300"></i>
+                    <span x-text="currentTimeString"></span>
+                </div>
             </div>
         </div>
     </header>
@@ -66,7 +72,7 @@
         <!-- Loading State -->
         <div x-show="loading" class="flex flex-col items-center justify-center py-20">
             <i class="fa-solid fa-circle-notch fa-spin text-4xl text-indigo-600 mb-4"></i>
-            <p class="text-gray-500 text-sm">Loading TV schedules...</p>
+            <p class="text-gray-500 text-sm">Loading live schedules...</p>
         </div>
 
         <!-- Schedule Grid -->
@@ -88,10 +94,28 @@
                     <!-- Program List -->
                     <div class="divide-y divide-gray-100 flex-grow">
                         <template x-for="program in channel.programs" :key="program.time">
-                            <div class="p-4 hover:bg-gray-50 transition flex items-start gap-3">
-                                <span class="text-xs font-mono font-semibold bg-indigo-50 text-indigo-700 px-2 py-1 rounded mt-0.5 flex-shrink-0" x-text="program.time"></span>
+                            <div class="p-4 transition flex items-start gap-3"
+                                :class="isCurrentProgram(program, channel.programs) ? 'bg-indigo-50/60 border-l-4 border-indigo-600' : 'hover:bg-gray-50'">
+                                <span class="text-xs font-mono font-semibold px-2 py-1 rounded mt-0.5 flex-shrink-0"
+                                    :class="isCurrentProgram(program, channel.programs) ? 'bg-indigo-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700'"
+                                    x-text="program.time"></span>
+                                
                                 <div class="flex-grow">
-                                    <h3 class="text-sm font-semibold text-gray-800" x-text="program.title"></h3>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-sm font-semibold text-gray-800" x-text="program.title"></h3>
+                                        <!-- Live Badge for currently airing item -->
+                                        <template x-if="isCurrentProgram(program, channel.programs)">
+                                            <span class="inline-flex items-center gap-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider animate-pulse">
+                                                <span class="w-1.5 h-1.5 bg-white rounded-full"></span> Live
+                                            </span>
+                                        </template>
+                                        <!-- Upcoming Badge -->
+                                        <template x-if="isUpcomingProgram(program)">
+                                            <span class="text-[10px] bg-gray-200 text-gray-600 font-medium px-1.5 py-0.5 rounded uppercase">
+                                                Upcoming
+                                            </span>
+                                        </template>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-0.5" x-text="program.description"></p>
                                 </div>
                             </div>
@@ -110,7 +134,7 @@
 
     <!-- Footer -->
     <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-xs text-gray-500">
-        <p>HK TV Program Schedule Viewer &bull; Hosted on GitHub Pages</p>
+        <p>HK TV Program Schedule Viewer &bull; Live Status Indicator Enabled &bull; Hosted on GitHub Pages</p>
     </footer>
 
     <!-- Application Script -->
@@ -120,16 +144,16 @@
                 loading: true,
                 searchQuery: '',
                 selectedCategory: 'all',
-                currentDate: new Date(),
+                now: new Date(),
                 channels: [],
 
-                get formattedDate() {
-                    return this.currentDate.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-                },
+                init() {
+                    // Update live clock every second
+                    setInterval(() => {
+                        this.now = new Date();
+                    }, 1000);
 
-                async init() {
-                    // Simulating data initialization. 
-                    // In a production setup, you could fetch XMLTV feeds or JSON endpoints here.
+                    // Load initial data
                     setTimeout(() => {
                         this.channels = [
                             {
@@ -139,9 +163,10 @@
                                 type: 'free',
                                 programs: [
                                     { time: '18:30', title: 'News Report (六點半新聞報道)', description: 'Comprehensive local and international news updates.' },
-                                    { time: '19:00', title: 'Financial Report (財經報道)', description: 'Latest stock market updates and economic summaries.' },
-                                    { time: '19:30', title: 'Prime Time Drama Series', description: 'Popular regional drama broadcast.' },
-                                    { time: '21:30', title: 'Variety Entertainment Show', description: 'Local game and entertainment talk show.' }
+                                    { time: '19:35', title: 'Scoop (東張西望)', description: 'In-depth focus on current affairs and human interest stories.' },
+                                    { time: '20:30', title: 'Prime Time Drama Series', description: 'Popular regional drama broadcast.' },
+                                    { time: '21:30', title: 'Variety Entertainment Show', description: 'Local game and entertainment talk show.' },
+                                    { time: '23:15', title: 'Nightly News (晚間新聞)', description: 'Late night summary of daily events.' }
                                 ]
                             },
                             {
@@ -152,7 +177,8 @@
                                 programs: [
                                     { time: '18:00', title: 'Interactive News Bulletin', description: 'Continuous rolling news coverage.' },
                                     { time: '20:00', title: 'Hong Kong Live', description: 'In-depth reporting on local affairs.' },
-                                    { time: '21:00', title: 'Global Watch', description: 'International political and economic review.' }
+                                    { time: '21:00', title: 'Global Watch', description: 'International political and economic review.' },
+                                    { time: '22:00', title: 'News File', description: 'Detailed analytical news pieces.' }
                                 ]
                             },
                             {
@@ -163,7 +189,8 @@
                                 programs: [
                                     { time: '18:30', title: 'ViuTV News', description: 'Evening domestic news briefing.' },
                                     { time: '19:30', title: 'Original Reality Program', description: 'Engaging lifestyle and unscripted local content.' },
-                                    { time: '21:30', title: 'Drama Series', description: 'Alternative contemporary series production.' }
+                                    { time: '21:30', title: 'Drama Series', description: 'Alternative contemporary series production.' },
+                                    { time: '22:30', title: 'Late Night Talk & Variety', description: 'Informal discussion and entertainment.' }
                                 ]
                             },
                             {
@@ -174,7 +201,8 @@
                                 programs: [
                                     { time: '18:00', title: 'HOY News', description: 'Local and global news coverage.' },
                                     { time: '19:00', title: 'Travel & Food Exploration', description: 'Culinary adventures across Asia.' },
-                                    { time: '20:30', title: 'Documentary Series', description: 'Human interest and cultural features.' }
+                                    { time: '20:30', title: 'Documentary Series', description: 'Human interest and cultural features.' },
+                                    { time: '22:00', title: 'Prime Drama', description: 'Acquired serial drama broadcast.' }
                                 ]
                             },
                             {
@@ -185,7 +213,8 @@
                                 programs: [
                                     { time: '18:30', title: 'RTHK News', description: 'Public service news broadcast.' },
                                     { time: '19:30', title: 'Arts and Culture Hong Kong', description: 'Showcasing local artists and cultural heritage.' },
-                                    { time: '20:30', title: 'Public Affairs Panel', description: 'Discussions on community development.' }
+                                    { time: '20:30', title: 'Public Affairs Panel', description: 'Discussions on community development.' },
+                                    { time: '22:00', title: 'Global Documentaries', description: 'International science and historical features.' }
                                 ]
                             },
                             {
@@ -194,14 +223,55 @@
                                 channelNumber: '630',
                                 type: 'pay',
                                 programs: [
-                                    { time: '18:00', title: 'Live Football Match Build-up', description: 'Pre-match stats and expert analysis.' },
-                                    { time: '20:00', title: 'Live Premier League Action', description: 'Live broadcast of premium football fixtures.' },
+                                    { time: '18:00', title: 'Live Match Build-up', description: 'Pre-match stats and expert analysis.' },
+                                    { time: '20:00', title: 'Live Sporting Fixture', description: 'Live broadcast of premier tournament events.' },
                                     { time: '22:30', title: 'Sports Highlights Review', description: 'Round-up of daily sporting events.' }
                                 ]
                             }
                         ];
                         this.loading = false;
-                    }, 400);
+                    }, 300);
+                },
+
+                get formattedDate() {
+                    return this.now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                },
+
+                get currentTimeString() {
+                    return this.now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                },
+
+                // Converts "HH:MM" into total minutes from midnight for comparison
+                timeToMinutes(timeStr) {
+                    const [hours, minutes] = timeStr.split(':').map(Number);
+                    return hours * 60 + minutes;
+                },
+
+                getCurrentTimeMinutes() {
+                    return this.now.getHours() * 60 + this.now.getMinutes();
+                },
+
+                // Check if a specific program is currently airing
+                isCurrentProgram(program, allPrograms) {
+                    const currentMins = this.getCurrentTimeMinutes();
+                    const index = allPrograms.findIndex(p => p.time === program.time);
+                    const startTime = this.timeToMinutes(program.time);
+
+                    // If it's the last program of the day and time has passed start time, it's current
+                    if (index === allPrograms.length - 1) {
+                        return currentMins >= startTime;
+                    }
+
+                    // Otherwise, it runs from its start time until the next program starts
+                    const nextStartTime = this.timeToMinutes(allPrograms[index + 1].time);
+                    return currentMins >= startTime && currentMins < nextStartTime;
+                },
+
+                // Check if a program is scheduled for later today
+                isUpcomingProgram(program) {
+                    const currentMins = this.getCurrentTimeMinutes();
+                    const startTime = this.timeToMinutes(program.time);
+                    return startTime > currentMins;
                 },
 
                 get filteredChannels() {
