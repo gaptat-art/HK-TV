@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>香港免費電視節目表 - 全日24小時真實節目版</title>
+    <title>香港免費電視節目表 - 全日真實節目與直播總覽</title>
     <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js for lightweight reactivity -->
@@ -14,20 +14,20 @@
 
     <!-- Header -->
     <header class="bg-blue-700 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-3xl font-bold flex items-center gap-3">
+                <h1 class="text-2xl sm:text-3xl font-bold flex items-center gap-3">
                     <i class="fa-solid fa-tv text-yellow-300"></i> 香港免費電視節目表
                 </h1>
-                <p class="text-blue-100 text-base mt-1">全日24小時真實節目時間表與未來7日預告</p>
+                <p class="text-blue-100 text-sm sm:text-base mt-1">全日真實節目時間表與實時直播導航</p>
             </div>
             <!-- Live Clock & Date -->
-            <div class="flex items-center gap-4 bg-blue-800 border border-blue-600 px-5 py-3 rounded-xl text-base shadow-inner">
+            <div class="flex items-center gap-4 bg-blue-800 border border-blue-600 px-4 py-2.5 rounded-xl text-sm sm:text-base shadow-inner">
                 <div class="flex items-center gap-2">
                     <i class="fa-regular fa-calendar text-yellow-300"></i>
                     <span x-text="formattedHeaderDate" class="font-medium"></span>
                 </div>
-                <div class="border-l border-blue-600 pl-4 flex items-center gap-2 font-mono font-bold text-lg text-yellow-300">
+                <div class="border-l border-blue-600 pl-3 flex items-center gap-2 font-mono font-bold text-base sm:text-lg text-yellow-300">
                     <i class="fa-regular fa-clock"></i>
                     <span x-text="currentTimeString"></span>
                 </div>
@@ -36,49 +36,53 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-grow w-full">
+    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex-grow w-full">
         
-        <!-- 7-Day Selector Bar -->
-        <div class="mb-8 bg-white p-4 rounded-2xl shadow-sm border border-gray-200">
-            <h2 class="text-base font-bold text-gray-700 mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-days text-blue-700"></i> 選擇查看日期 (全日節目表)
-            </h2>
-            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-                <template x-for="day in availableDays" :key="day.dateStr">
-                    <button @click="selectedDateStr = day.dateStr"
-                        :class="selectedDateStr === day.dateStr ? 'bg-blue-700 text-white shadow-md border-blue-700 scale-105' : 'bg-gray-50 text-gray-800 hover:bg-gray-100 border-gray-300'"
-                        class="px-4 py-3 rounded-xl border-2 text-center transition flex flex-col items-center justify-center">
-                        <span class="text-xs font-bold uppercase opacity-90" x-text="day.dayOfWeek"></span>
-                        <span class="text-lg font-extrabold mt-0.5" x-text="day.displayDate"></span>
-                        <span class="text-[11px] mt-1 font-medium px-2 py-0.5 rounded"
-                            :class="selectedDateStr === day.dateStr ? 'bg-blue-800 text-yellow-200' : 'bg-gray-200 text-gray-700'"
-                            x-text="day.isToday ? '今日' : ''"></span>
-                    </button>
-                </template>
-            </div>
-        </div>
-
-        <!-- Controls & Search -->
-        <div class="flex flex-col lg:flex-row justify-between items-center gap-4 mb-8 bg-white p-4 rounded-2xl shadow-sm border border-gray-200">
+        <!-- Top Action Bar: Live Now Toggle & Search -->
+        <div class="flex flex-col lg:flex-row justify-between items-center gap-4 mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-200">
             <!-- Search Bar -->
-            <div class="relative w-full lg:w-96">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 text-lg">
+            <div class="relative w-full lg:w-80">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 text-base">
                     <i class="fa-solid fa-search"></i>
                 </span>
-                <input type="text" x-model="searchQuery" placeholder="輸入節目名稱、頻道名稱或台號..." 
-                    class="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 text-lg shadow-inner">
+                <input type="text" x-model="searchQuery" placeholder="搜尋節目、頻道或台號..." 
+                    class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 text-base shadow-inner">
             </div>
 
-            <div class="flex items-center gap-2 text-base font-bold text-blue-800 bg-blue-50 px-4 py-3 rounded-xl border border-blue-200 w-full lg:w-auto justify-center">
-                <i class="fa-solid fa-circle-info"></i>
-                <span x-text="'正在顯示全日節目: ' + getSelectedDateLabel()"></span>
+            <!-- Live Now Button (Quick View) -->
+            <button @click="showLiveModal = true" class="w-full lg:w-auto bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-2.5 animate-pulse">
+                <i class="fa-solid fa-satellite-dish text-yellow-300"></i>
+                <span>🔥 查看現正直播總覽 (全台實時)</span>
+            </button>
+        </div>
+
+        <!-- Neater 7-Day Date Selector (Horizontal Strip) -->
+        <div class="mb-6 bg-white px-4 py-3 rounded-2xl shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs sm:text-sm font-bold text-gray-600 flex items-center gap-1.5">
+                    <i class="fa-solid fa-calendar-days text-blue-700"></i> 選擇日期 (7日預告)
+                </span>
+                <span class="text-xs font-bold text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200" x-text="getSelectedDateLabel()"></span>
+            </div>
+            <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                <template x-for="day in availableDays" :key="day.dateStr">
+                    <button @click="selectedDateStr = day.dateStr"
+                        :class="selectedDateStr === day.dateStr ? 'bg-blue-700 text-white shadow border-blue-700 scale-105' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'"
+                        class="px-4 py-2 rounded-xl border text-center transition flex-shrink-0 flex flex-col items-center min-w-[85px]">
+                        <span class="text-[11px] font-bold uppercase opacity-85" x-text="day.dayOfWeek"></span>
+                        <span class="text-base font-extrabold" x-text="day.displayDate"></span>
+                        <span class="text-[10px] mt-0.5 font-semibold px-1.5 rounded"
+                            :class="selectedDateStr === day.dateStr ? 'bg-blue-800 text-yellow-200' : 'bg-gray-200 text-gray-600'"
+                            x-text="day.isToday ? '今日' : '預告'"></span>
+                    </button>
+                </template>
             </div>
         </div>
 
         <!-- Loading State -->
         <div x-show="loading" class="flex flex-col items-center justify-center py-20">
             <i class="fa-solid fa-circle-notch fa-spin text-5xl text-blue-700 mb-4"></i>
-            <p class="text-gray-600 text-lg font-medium">正在載入詳細電視節目表...</p>
+            <p class="text-gray-600 text-base font-medium">正在載入真實電視節目表...</p>
         </div>
 
         <!-- Schedule Grid -->
@@ -86,38 +90,38 @@
             <template x-for="channel in filteredChannels" :key="channel.id">
                 <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 overflow-hidden flex flex-col hover:shadow-lg transition">
                     <!-- Channel Header -->
-                    <div class="bg-blue-50 px-6 py-4 border-b-2 border-gray-200 flex justify-between items-center">
+                    <div class="bg-blue-50 px-5 py-3.5 border-b-2 border-gray-200 flex justify-between items-center">
                         <div>
-                            <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-green-200 text-green-900">
+                            <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-green-200 text-green-900">
                                 免費電視
                             </span>
-                            <h2 class="text-xl font-extrabold text-gray-900 mt-1.5" x-text="channel.name"></h2>
+                            <h2 class="text-lg font-extrabold text-gray-900 mt-1" x-text="channel.name"></h2>
                         </div>
-                        <span class="text-base font-bold bg-white border-2 border-blue-300 px-3.5 py-1.5 rounded-full text-blue-800 shadow-sm" x-text="'第 ' + channel.channelNumber + ' 台'"></span>
+                        <span class="text-sm font-bold bg-white border-2 border-blue-300 px-3 py-1 rounded-full text-blue-800 shadow-sm" x-text="'CH ' + channel.channelNumber"></span>
                     </div>
 
                     <!-- Program List (Full Day) -->
-                    <div class="divide-y-2 divide-gray-100 flex-grow max-h-[500px] overflow-y-auto">
+                    <div class="divide-y-2 divide-gray-100 flex-grow max-h-[420px] overflow-y-auto">
                         <template x-for="program in channel.programs" :key="program.time">
-                            <div class="p-4 transition flex items-start gap-3"
+                            <div class="p-3.5 transition flex items-start gap-3"
                                 :class="isTodaySelected() && isCurrentProgram(program, channel.programs) ? 'bg-yellow-50 border-l-8 border-yellow-500' : 'hover:bg-gray-50'">
-                                <span class="text-xs font-mono font-bold px-2.5 py-1.5 rounded-lg mt-0.5 flex-shrink-0 shadow-sm"
+                                <span class="text-xs font-mono font-bold px-2 py-1 rounded mt-0.5 flex-shrink-0 shadow-sm"
                                     :class="isTodaySelected() && isCurrentProgram(program, channel.programs) ? 'bg-yellow-500 text-gray-900' : 'bg-gray-200 text-gray-800'"
                                     x-text="program.time"></span>
                                 
                                 <div class="flex-grow">
                                     <div class="flex items-center flex-wrap gap-2 mb-0.5">
-                                        <h3 class="text-base font-bold text-gray-900" x-text="program.title"></h3>
+                                        <h3 class="text-sm font-bold text-gray-900" x-text="program.title"></h3>
                                         <!-- Live Badge -->
                                         <template x-if="isTodaySelected() && isCurrentProgram(program, channel.programs)">
                                             <span class="inline-flex items-center gap-1 bg-red-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider shadow-sm animate-pulse">
-                                                <span class="w-1.5 h-1.5 bg-white rounded-full"></span> 直播
+                                                <span class="w-1.5 h-1.5 bg-white rounded-full"></span> 直播中
                                             </span>
                                         </template>
                                         <!-- Upcoming Badge -->
                                         <template x-if="isTodaySelected() && isUpcomingProgram(program)">
                                             <span class="text-[10px] bg-gray-200 text-gray-700 font-bold px-1.5 py-0.5 rounded">
-                                                稍后
+                                                即將播放
                                             </span>
                                         </template>
                                     </div>
@@ -133,13 +137,54 @@
         <!-- Empty State -->
         <div x-show="!loading && filteredChannels.length === 0" class="text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-200 mt-4">
             <i class="fa-regular fa-folder-open text-5xl text-gray-300 mb-4"></i>
-            <p class="text-gray-600 text-lg font-bold">找不到符合條件的頻道或節目。</p>
+            <p class="text-gray-600 text-base font-bold">找不到符合條件的頻道或節目。</p>
         </div>
     </main>
 
+    <!-- LIVE NOW MODAL (Quick check all channels currently airing) -->
+    <div x-show="showLiveModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" x-cloak>
+        <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden border-2 border-red-500">
+            <!-- Modal Header -->
+            <div class="bg-red-600 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-satellite-dish text-yellow-300 animate-pulse"></i> 現正直播總覽 (此刻全台同步放送)
+                </h3>
+                <button @click="showLiveModal = false" class="text-white hover:text-yellow-200 text-xl font-bold px-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <!-- Modal Body: List current program for each channel -->
+            <div class="p-6 overflow-y-auto divide-y divide-gray-100 flex-grow">
+                <template x-for="channel in channels" :key="'live-' + channel.id">
+                    <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-gray-50 px-3 rounded-xl transition">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-blue-700 text-white text-xs font-extrabold px-2.5 py-1 rounded-lg">CH ' + channel.channelNumber + '</span>
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-900" x-text="channel.name"></h4>
+                                <div class="text-xs text-red-600 font-bold mt-0.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle text-[8px] animate-ping"></i>
+                                    <span x-text="getCurrentProgramForChannel(channel).title"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right sm:text-right text-xs text-gray-500 font-mono bg-gray-100 px-3 py-1.5 rounded-lg">
+                            時間: <span class="font-bold text-gray-800" x-text="getCurrentProgramForChannel(channel).time"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            <!-- Modal Footer -->
+            <div class="bg-gray-50 px-6 py-3.5 border-t border-gray-200 text-center">
+                <button @click="showLiveModal = false" class="bg-gray-800 text-white font-bold px-6 py-2 rounded-xl text-sm shadow">
+                    關閉總覽
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-sm text-gray-600">
-        <p>香港免費電視節目表 &bull; 全日真實節目清單 &bull; 長者友善大字版</p>
+        <p>香港免費電視節目表 &bull; 全日真實節目與實時直播導航 &bull; 長者友善大字版</p>
     </footer>
 
     <!-- Application Script -->
@@ -166,6 +211,7 @@
             return {
                 loading: true,
                 searchQuery: '',
+                showLiveModal: false,
                 now: new Date(),
                 availableDays: daysList,
                 selectedDateStr: daysList[0].dateStr,
@@ -267,10 +313,8 @@
                                     { time: '06:00', title: '香港早晨', description: '早間新聞、天氣及交通消息。' },
                                     { time: '09:00', title: '交易現場', description: '直擊金融市場及港股走勢。' },
                                     { time: '10:05', title: '高朋滿座', description: '經典處境喜劇重溫。' },
-                                    { time: '10:35', title: '射鵰英雄傳之鐵血丹心', description: '金庸武俠金牌鉅製。' },
                                     { time: '12:00', title: '午間新聞', description: '中午重點新聞報道。' },
                                     { time: '13:15', title: '流行都市', description: '消閒、烹飪及生活時尚資訊。' },
-                                    { time: '16:20', title: '今日有樓睇', description: '搜羅全港最新屋苑與置業資訊。' },
                                     { time: '18:30', title: '六點半新聞報道', description: '報道本地及世界各地最新重點新聞。' },
                                     { time: '19:30', title: '東張西望', description: '深入探討社會熱話、民生及突發事件。' },
                                     { time: '20:00', title: '愛．回家之開心速遞', description: '輕鬆惹笑的皇牌長壽處境喜劇。' },
@@ -286,7 +330,7 @@
                                 programs: [
                                     { time: '07:00', title: '娛樂新聞報道', description: '追蹤娛樂圈最新動態。' },
                                     { time: '12:00', title: '兩個小生去Camping', description: '輕鬆旅遊綜藝節目。' },
-                                    { time: '16:00', title: '動畫世界 (多啦A夢 / 櫻桃小丸子)', description: '合家歡人氣日本動畫。' },
+                                    { time: '16:00', title: '動畫世界 (多啦A夢)', description: '合家歡人氣日本動畫。' },
                                     { time: '20:30', title: 'J Music', description: '音樂現場表演與樂壇訪談。' },
                                     { time: '22:00', title: '周六聊Teen谷', description: '年青人潮流話題清談節目。' }
                                 ]
@@ -354,7 +398,7 @@
                             }
                         ];
                         this.loading = false;
-                    }, 300);
+                    }, 200);
                 },
 
                 get formattedHeaderDate() {
@@ -402,6 +446,22 @@
                     const currentMins = this.getCurrentTimeMinutes();
                     const startTime = this.timeToMinutes(program.time);
                     return startTime > currentMins;
+                },
+
+                getCurrentProgramForChannel(channel) {
+                    const progs = channel.programs;
+                    const currentMins = this.getCurrentTimeMinutes();
+                    let activeProg = progs[0];
+
+                    for (let i = 0; i < progs.length; i++) {
+                        const startMins = this.timeToMinutes(progs[i].time);
+                        if (currentMins >= startMins) {
+                            activeProg = progs[i];
+                        } else {
+                            break;
+                        }
+                    }
+                    return activeProg;
                 },
 
                 get filteredChannels() {
