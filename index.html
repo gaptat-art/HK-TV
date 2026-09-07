@@ -1,34 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HK TV Program Schedule - Live & Upcoming</title>
+    <title>香港電視節目表 - 長者友善版</title>
     <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js for lightweight reactivity -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen flex flex-col" x-data="tvApp()">
+<body class="bg-gray-100 text-gray-900 font-sans antialiased min-h-screen flex flex-col" x-data="tvApp()">
 
     <!-- Header -->
-    <header class="bg-indigo-600 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <header class="bg-blue-700 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-2xl font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-tv"></i> HK TV Program Guide
+                <h1 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fa-solid fa-tv text-yellow-300"></i> 香港電視節目表
                 </h1>
-                <p class="text-indigo-200 text-sm mt-1">Live, current, and upcoming program schedules for Hong Kong</p>
+                <p class="text-blue-100 text-base mt-1">輕鬆查看各大電視台的直播與精彩節目</p>
             </div>
-            <!-- Live Clock & Date Selector -->
-            <div class="flex items-center gap-4 bg-indigo-700 px-4 py-2 rounded-lg text-sm shadow-inner">
+            <!-- Live Clock & Date -->
+            <div class="flex items-center gap-4 bg-blue-800 border border-blue-600 px-5 py-3 rounded-xl text-base shadow-inner">
                 <div class="flex items-center gap-2">
-                    <i class="fa-regular fa-calendar"></i>
-                    <span x-text="formattedDate"></span>
+                    <i class="fa-regular fa-calendar text-yellow-300"></i>
+                    <span x-text="formattedDate" class="font-medium"></span>
                 </div>
-                <div class="border-l border-indigo-500 pl-3 flex items-center gap-2 font-mono font-semibold">
-                    <i class="fa-regular fa-clock text-indigo-300"></i>
+                <div class="border-l border-blue-600 pl-4 flex items-center gap-2 font-mono font-bold text-lg text-yellow-300">
+                    <i class="fa-regular fa-clock"></i>
                     <span x-text="currentTimeString"></span>
                 </div>
             </div>
@@ -39,84 +39,84 @@
     <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-grow w-full">
         
         <!-- Controls & Channel Filter -->
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+        <div class="flex flex-col lg:flex-row justify-between items-center gap-4 mb-8 bg-white p-4 rounded-2xl shadow-sm border border-gray-200">
             <!-- Search Bar -->
-            <div class="relative w-full md:w-80">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+            <div class="relative w-full lg:w-96">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400 text-lg">
                     <i class="fa-solid fa-search"></i>
                 </span>
-                <input type="text" x-model="searchQuery" placeholder="Search programs or channels..." 
-                    class="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-sm">
+                <input type="text" x-model="searchQuery" placeholder="輸入節目名稱或頻道..." 
+                    class="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 text-lg shadow-inner">
             </div>
 
             <!-- Channel Category Tabs -->
-            <div class="flex flex-wrap gap-2 w-full md:w-auto">
+            <div class="flex flex-wrap gap-3 w-full lg:w-auto">
                 <button @click="selectedCategory = 'all'" 
-                    :class="selectedCategory === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
-                    All Channels
+                    :class="selectedCategory === 'all' ? 'bg-blue-700 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'"
+                    class="px-6 py-3 rounded-xl text-base font-bold transition flex-1 sm:flex-none">
+                    全部頻道
                 </button>
                 <button @click="selectedCategory = 'free'" 
-                    :class="selectedCategory === 'free' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
-                    Free-to-Air
+                    :class="selectedCategory === 'free' ? 'bg-blue-700 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'"
+                    class="px-6 py-3 rounded-xl text-base font-bold transition flex-1 sm:flex-none">
+                    免費電視
                 </button>
                 <button @click="selectedCategory = 'pay'" 
-                    :class="selectedCategory === 'pay' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
-                    Pay / Satellite
+                    :class="selectedCategory === 'pay' ? 'bg-blue-700 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'"
+                    class="px-6 py-3 rounded-xl text-base font-bold transition flex-1 sm:flex-none">
+                    收費 / 衛星台
                 </button>
             </div>
         </div>
 
         <!-- Loading State -->
         <div x-show="loading" class="flex flex-col items-center justify-center py-20">
-            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-indigo-600 mb-4"></i>
-            <p class="text-gray-500 text-sm">Loading live schedules...</p>
+            <i class="fa-solid fa-circle-notch fa-spin text-5xl text-blue-700 mb-4"></i>
+            <p class="text-gray-600 text-lg font-medium">正在載入電視節目表...</p>
         </div>
 
         <!-- Schedule Grid -->
         <div x-show="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <template x-for="channel in filteredChannels" :key="channel.id">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 overflow-hidden flex flex-col hover:shadow-lg transition">
                     <!-- Channel Header -->
-                    <div class="bg-gray-100 px-5 py-3 border-b border-gray-200 flex justify-between items-center">
+                    <div class="bg-blue-50 px-6 py-4 border-b-2 border-gray-200 flex justify-between items-center">
                         <div>
-                            <span class="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded"
-                                :class="channel.type === 'free' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'"
-                                x-text="channel.type === 'free' ? 'Free-to-Air' : 'Pay TV'">
+                            <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md"
+                                :class="channel.type === 'free' ? 'bg-green-200 text-green-900 font-bold' : 'bg-blue-200 text-blue-900 font-bold'"
+                                x-text="channel.type === 'free' ? '免費電視' : '收費電視'">
                             </span>
-                            <h2 class="text-lg font-bold text-gray-900 mt-1" x-text="channel.name"></h2>
+                            <h2 class="text-xl font-extrabold text-gray-900 mt-1.5" x-text="channel.name"></h2>
                         </div>
-                        <span class="text-xs font-semibold bg-white border border-gray-300 px-2.5 py-1 rounded-full text-gray-600 shadow-sm" x-text="'Ch ' + channel.channelNumber"></span>
+                        <span class="text-base font-bold bg-white border-2 border-blue-300 px-3.5 py-1.5 rounded-full text-blue-800 shadow-sm" x-text="'第 ' + channel.channelNumber + ' 台'"></span>
                     </div>
 
                     <!-- Program List -->
-                    <div class="divide-y divide-gray-100 flex-grow">
+                    <div class="divide-y-2 divide-gray-100 flex-grow">
                         <template x-for="program in channel.programs" :key="program.time">
-                            <div class="p-4 transition flex items-start gap-3"
-                                :class="isCurrentProgram(program, channel.programs) ? 'bg-indigo-50/60 border-l-4 border-indigo-600' : 'hover:bg-gray-50'">
-                                <span class="text-xs font-mono font-semibold px-2 py-1 rounded mt-0.5 flex-shrink-0"
-                                    :class="isCurrentProgram(program, channel.programs) ? 'bg-indigo-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700'"
+                            <div class="p-5 transition flex items-start gap-4"
+                                :class="isCurrentProgram(program, channel.programs) ? 'bg-yellow-50 border-l-8 border-yellow-500' : 'hover:bg-gray-50'">
+                                <span class="text-sm font-mono font-bold px-3 py-1.5 rounded-lg mt-0.5 flex-shrink-0 shadow-sm"
+                                    :class="isCurrentProgram(program, channel.programs) ? 'bg-yellow-500 text-gray-900' : 'bg-gray-200 text-gray-800'"
                                     x-text="program.time"></span>
                                 
                                 <div class="flex-grow">
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="text-sm font-semibold text-gray-800" x-text="program.title"></h3>
-                                        <!-- Live Badge for currently airing item -->
+                                    <div class="flex items-center flex-wrap gap-2 mb-1">
+                                        <h3 class="text-lg font-bold text-gray-900" x-text="program.title"></h3>
+                                        <!-- Live Badge -->
                                         <template x-if="isCurrentProgram(program, channel.programs)">
-                                            <span class="inline-flex items-center gap-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider animate-pulse">
-                                                <span class="w-1.5 h-1.5 bg-white rounded-full"></span> Live
+                                            <span class="inline-flex items-center gap-1.5 bg-red-600 text-white text-xs font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm animate-pulse">
+                                                <span class="w-2 h-2 bg-white rounded-full"></span> 現正直播
                                             </span>
                                         </template>
                                         <!-- Upcoming Badge -->
                                         <template x-if="isUpcomingProgram(program)">
-                                            <span class="text-[10px] bg-gray-200 text-gray-600 font-medium px-1.5 py-0.5 rounded uppercase">
-                                                Upcoming
+                                            <span class="text-xs bg-gray-200 text-gray-700 font-bold px-2 py-0.5 rounded-md">
+                                                稍后播放
                                             </span>
                                         </template>
                                     </div>
-                                    <p class="text-xs text-gray-500 mt-0.5" x-text="program.description"></p>
+                                    <p class="text-sm text-gray-600 leading-relaxed" x-text="program.description"></p>
                                 </div>
                             </div>
                         </template>
@@ -126,15 +126,15 @@
         </div>
 
         <!-- Empty State -->
-        <div x-show="!loading && filteredChannels.length === 0" class="text-center py-16">
-            <i class="fa-regular fa-folder-open text-4xl text-gray-300 mb-3"></i>
-            <p class="text-gray-500">No channels or programs found matching your search.</p>
+        <div x-show="!loading && filteredChannels.length === 0" class="text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-200 mt-4">
+            <i class="fa-regular fa-folder-open text-5xl text-gray-300 mb-4"></i>
+            <p class="text-gray-600 text-lg font-bold">找不到符合條件的頻道或節目。</p>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-xs text-gray-500">
-        <p>HK TV Program Schedule Viewer &bull; Live Status Indicator Enabled &bull; Hosted on GitHub Pages</p>
+    <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-sm text-gray-600">
+        <p>香港電視節目表 &bull; 長者友善大字版 &bull; 適用於手機及平板電腦</p>
     </footer>
 
     <!-- Application Script -->
@@ -153,32 +153,32 @@
                         this.now = new Date();
                     }, 1000);
 
-                    // Load initial data
+                    // Load localized Traditional Chinese data
                     setTimeout(() => {
                         this.channels = [
                             {
                                 id: 'tvb_jade',
-                                name: 'TVB Jade (翡翠台)',
+                                name: '翡翠台 (TVB Jade)',
                                 channelNumber: '81',
                                 type: 'free',
                                 programs: [
-                                    { time: '18:30', title: 'News Report (六點半新聞報道)', description: 'Comprehensive local and international news updates.' },
-                                    { time: '19:35', title: 'Scoop (東張西望)', description: 'In-depth focus on current affairs and human interest stories.' },
-                                    { time: '20:30', title: 'Prime Time Drama Series', description: 'Popular regional drama broadcast.' },
-                                    { time: '21:30', title: 'Variety Entertainment Show', description: 'Local game and entertainment talk show.' },
-                                    { time: '23:15', title: 'Nightly News (晚間新聞)', description: 'Late night summary of daily events.' }
+                                    { time: '18:30', title: '六點半新聞報道', description: '報道本地及世界各地最新重點新聞。' },
+                                    { time: '19:35', title: '東張西望', description: '深入探討社會熱話、民生及突發事件。' },
+                                    { time: '20:30', title: '愛．回家之開心速遞', description: '輕鬆惹笑的皇牌長壽處境喜劇。' },
+                                    { time: '21:30', title: '黃金檔精選連續劇', description: '匯聚實力派演員的重頭壓軸劇集。' },
+                                    { time: '23:15', title: '晚間新聞', description: '總結全日重要新聞與財經動向。' }
                                 ]
                             },
                             {
                                 id: 'tvb_news',
-                                name: 'TVB News (無綫新聞台)',
+                                name: '無綫新聞台 (TVB News)',
                                 channelNumber: '83',
                                 type: 'free',
                                 programs: [
-                                    { time: '18:00', title: 'Interactive News Bulletin', description: 'Continuous rolling news coverage.' },
-                                    { time: '20:00', title: 'Hong Kong Live', description: 'In-depth reporting on local affairs.' },
-                                    { time: '21:00', title: 'Global Watch', description: 'International political and economic review.' },
-                                    { time: '22:00', title: 'News File', description: 'Detailed analytical news pieces.' }
+                                    { time: '18:00', title: '香港早午晚直擊', description: '無間斷提供最新本地及國際快訊。' },
+                                    { time: '20:00', title: '焦點專題', description: '深入分析社會與經濟熱門議題。' },
+                                    { time: '21:00', title: '兩岸國際', description: '追蹤環球政經最新形勢。' },
+                                    { time: '22:00', title: '新聞檔案', description: '回顧歷史檔案與重要時刻。' }
                                 ]
                             },
                             {
@@ -187,10 +187,10 @@
                                 channelNumber: '99',
                                 type: 'free',
                                 programs: [
-                                    { time: '18:30', title: 'ViuTV News', description: 'Evening domestic news briefing.' },
-                                    { time: '19:30', title: 'Original Reality Program', description: 'Engaging lifestyle and unscripted local content.' },
-                                    { time: '21:30', title: 'Drama Series', description: 'Alternative contemporary series production.' },
-                                    { time: '22:30', title: 'Late Night Talk & Variety', description: 'Informal discussion and entertainment.' }
+                                    { time: '18:30', title: '6點新聞報道', description: '為觀眾提供客觀的晚間新聞。' },
+                                    { time: '19:30', title: '真人騷與綜藝節目', description: '輕鬆具創意的娛樂及紀實節目。' },
+                                    { time: '21:30', title: '原創劇集', description: '題材嶄新的當代劇作。' },
+                                    { time: '22:30', title: '深宵傾談與消閒', description: '輕鬆訪談及生活消閒節目。' }
                                 ]
                             },
                             {
@@ -199,22 +199,22 @@
                                 channelNumber: '77',
                                 type: 'free',
                                 programs: [
-                                    { time: '18:00', title: 'HOY News', description: 'Local and global news coverage.' },
-                                    { time: '19:00', title: 'Travel & Food Exploration', description: 'Culinary adventures across Asia.' },
-                                    { time: '20:30', title: 'Documentary Series', description: 'Human interest and cultural features.' },
-                                    { time: '22:00', title: 'Prime Drama', description: 'Acquired serial drama broadcast.' }
+                                    { time: '18:00', title: 'HOY 晚間新聞', description: '緊貼本地民生及國際視野。' },
+                                    { time: '19:00', title: '環球滋味遊', description: '介紹各地特色美食與風光。' },
+                                    { time: '20:30', title: '人文紀實系列', description: '發掘動人故事及文化歷史。' },
+                                    { time: '22:00', title: '精選外購劇', description: '追看性價比高的大熱劇集。' }
                                 ]
                             },
                             {
                                 id: 'rthk_31',
-                                name: 'RTHK TV 31',
+                                name: '港台電視 31 (RTHK 31)',
                                 channelNumber: '31',
                                 type: 'free',
                                 programs: [
-                                    { time: '18:30', title: 'RTHK News', description: 'Public service news broadcast.' },
-                                    { time: '19:30', title: 'Arts and Culture Hong Kong', description: 'Showcasing local artists and cultural heritage.' },
-                                    { time: '20:30', title: 'Public Affairs Panel', description: 'Discussions on community development.' },
-                                    { time: '22:00', title: 'Global Documentaries', description: 'International science and historical features.' }
+                                    { time: '18:30', title: '香港電台新聞', description: '公共廣播新聞報道。' },
+                                    { time: '19:30', title: '文化長廊', description: '展示本地藝術、文化及歷史傳承。' },
+                                    { time: '20:30', title: '香港故事', description: '細訴香港人的奮鬥與生活點滴。' },
+                                    { time: '22:00', title: '國際自然與科學', description: '探索大自然奧秘與世界科學發展。' }
                                 ]
                             },
                             {
@@ -223,9 +223,9 @@
                                 channelNumber: '630',
                                 type: 'pay',
                                 programs: [
-                                    { time: '18:00', title: 'Live Match Build-up', description: 'Pre-match stats and expert analysis.' },
-                                    { time: '20:00', title: 'Live Sporting Fixture', description: 'Live broadcast of premier tournament events.' },
-                                    { time: '22:30', title: 'Sports Highlights Review', description: 'Round-up of daily sporting events.' }
+                                    { time: '18:00', title: '體育賽前分析', description: '專業球評與賽事數據預測。' },
+                                    { time: '20:00', title: '精選體育賽事直播', description: '直播各項頂尖球賽與運動競技。' },
+                                    { time: '22:30', title: '體育快訊重溫', description: '全日體壇精華與賽果總結。' }
                                 ]
                             }
                         ];
@@ -234,14 +234,13 @@
                 },
 
                 get formattedDate() {
-                    return this.now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                    return this.now.toLocaleDateString('zh-HK', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
                 },
 
                 get currentTimeString() {
-                    return this.now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    return this.now.toLocaleTimeString('zh-HK', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 },
 
-                // Converts "HH:MM" into total minutes from midnight for comparison
                 timeToMinutes(timeStr) {
                     const [hours, minutes] = timeStr.split(':').map(Number);
                     return hours * 60 + minutes;
@@ -251,23 +250,19 @@
                     return this.now.getHours() * 60 + this.now.getMinutes();
                 },
 
-                // Check if a specific program is currently airing
                 isCurrentProgram(program, allPrograms) {
                     const currentMins = this.getCurrentTimeMinutes();
                     const index = allPrograms.findIndex(p => p.time === program.time);
                     const startTime = this.timeToMinutes(program.time);
 
-                    // If it's the last program of the day and time has passed start time, it's current
                     if (index === allPrograms.length - 1) {
                         return currentMins >= startTime;
                     }
 
-                    // Otherwise, it runs from its start time until the next program starts
                     const nextStartTime = this.timeToMinutes(allPrograms[index + 1].time);
                     return currentMins >= startTime && currentMins < nextStartTime;
                 },
 
-                // Check if a program is scheduled for later today
                 isUpcomingProgram(program) {
                     const currentMins = this.getCurrentTimeMinutes();
                     const startTime = this.timeToMinutes(program.time);
