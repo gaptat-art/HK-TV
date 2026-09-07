@@ -12,26 +12,13 @@
 </head>
 <body class="bg-gray-100 text-gray-900 font-sans antialiased min-h-screen flex flex-col" x-data="tvApp()">
 
-    <!-- Header -->
+    <!-- Header (Clean version without live clock & date) -->
     <header class="bg-blue-700 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-                    <i class="fa-solid fa-tv text-yellow-300"></i> 香港免費電視節目表
-                </h1>
-                <p class="text-blue-100 text-sm sm:text-base mt-1">全日真實節目時間表與實時直播導航</p>
-            </div>
-            <!-- Live Clock & Date -->
-            <div class="flex items-center gap-4 bg-blue-800 border border-blue-600 px-4 py-2.5 rounded-xl text-sm sm:text-base shadow-inner">
-                <div class="flex items-center gap-2">
-                    <i class="fa-regular fa-calendar text-yellow-300"></i>
-                    <span x-text="formattedHeaderDate" class="font-medium"></span>
-                </div>
-                <div class="border-l border-blue-600 pl-3 flex items-center gap-2 font-mono font-bold text-base sm:text-lg text-yellow-300">
-                    <i class="fa-regular fa-clock"></i>
-                    <span x-text="currentTimeString"></span>
-                </div>
-            </div>
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <h1 class="text-2xl sm:text-3xl font-bold flex items-center gap-3">
+                <i class="fa-solid fa-tv text-yellow-300"></i> 香港免費電視節目表
+            </h1>
+            <p class="text-blue-100 text-sm sm:text-base mt-1">全日真實節目時間表與實時直播導航</p>
         </div>
     </header>
 
@@ -158,7 +145,6 @@
                 <template x-for="channel in channels" :key="'live-' + channel.id">
                     <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-gray-50 px-3 rounded-xl transition">
                         <div class="flex items-center gap-3">
-                            <!-- Fixed channel badge x-text syntax here -->
                             <span class="bg-blue-700 text-white text-xs font-extrabold px-2.5 py-1 rounded-lg" x-text="'CH ' + channel.channelNumber"></span>
                             <div>
                                 <h4 class="text-sm font-bold text-gray-900" x-text="channel.name"></h4>
@@ -400,14 +386,6 @@
                         ];
                         this.loading = false;
                     }, 200);
-                },
-
-                get formattedHeaderDate() {
-                    return this.now.toLocaleDateString('zh-HK', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-                },
-
-                get currentTimeString() {
-                    return this.now.toLocaleTimeString('zh-HK', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 },
 
                 getSelectedDateLabel() {
