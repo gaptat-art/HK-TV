@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HK TV Program Schedule</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js for lightweight reactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen flex flex-col" x-data="tvApp()">
+
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-tv"></i> HK TV Program Guide
+                </h1>
+                <p class="text-indigo-200 text-sm mt-1">Live program schedules for Hong Kong television channels</p>
+            </div>
+            <!-- Date Selector -->
+            <div class="flex items-center gap-2 bg-indigo-700 px-3 py-2 rounded-lg text-sm">
+                <i class="fa-regular fa-calendar"></i>
+                <span x-text="formattedDate"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-grow w-full">
+        
+        <!-- Controls & Channel Filter -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+            <!-- Search Bar -->
+            <div class="relative w-full md:w-80">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                    <i class="fa-solid fa-search"></i>
+                </span>
+                <input type="text" x-model="searchQuery" placeholder="Search programs or channels..." 
+                    class="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-sm">
+            </div>
+
+            <!-- Channel Category Tabs -->
+            <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                <button @click="selectedCategory = 'all'" 
+                    :class="selectedCategory === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+                    All Channels
+                </button>
+                <button @click="selectedCategory = 'free'" 
+                    :class="selectedCategory === 'free' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+                    Free-to-Air
+                </button>
+                <button @click="selectedCategory = 'pay'" 
+                    :class="selectedCategory === 'pay' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100'"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+                    Pay / Satellite
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div x-show="loading" class="flex flex-col items-center justify-center py-20">
+            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-indigo-600 mb-4"></i>
+            <p class="text-gray-500 text-sm">Loading TV schedules...</p>
+        </div>
+
+        <!-- Schedule Grid -->
+        <div x-show="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <template x-for="channel in filteredChannels" :key="channel.id">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                    <!-- Channel Header -->
+                    <div class="bg-gray-100 px-5 py-3 border-b border-gray-200 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded"
+                                :class="channel.type === 'free' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'"
+                                x-text="channel.type === 'free' ? 'Free-to-Air' : 'Pay TV'">
+                            </span>
+                            <h2 class="text-lg font-bold text-gray-900 mt-1" x-text="channel.name"></h2>
+                        </div>
+                        <span class="text-xs font-semibold bg-white border border-gray-300 px-2.5 py-1 rounded-full text-gray-600 shadow-sm" x-text="'Ch ' + channel.channelNumber"></span>
+                    </div>
+
+                    <!-- Program List -->
+                    <div class="divide-y divide-gray-100 flex-grow">
+                        <template x-for="program in channel.programs" :key="program.time">
+                            <div class="p-4 hover:bg-gray-50 transition flex items-start gap-3">
+                                <span class="text-xs font-mono font-semibold bg-indigo-50 text-indigo-700 px-2 py-1 rounded mt-0.5 flex-shrink-0" x-text="program.time"></span>
+                                <div class="flex-grow">
+                                    <h3 class="text-sm font-semibold text-gray-800" x-text="program.title"></h3>
+                                    <p class="text-xs text-gray-500 mt-0.5" x-text="program.description"></p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Empty State -->
+        <div x-show="!loading && filteredChannels.length === 0" class="text-center py-16">
+            <i class="fa-regular fa-folder-open text-4xl text-gray-300 mb-3"></i>
+            <p class="text-gray-500">No channels or programs found matching your search.</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-xs text-gray-500">
+        <p>HK TV Program Schedule Viewer &bull; Hosted on GitHub Pages</p>
+    </footer>
+
+    <!-- Application Script -->
+    <script>
+        function tvApp() {
+            return {
+                loading: true,
+                searchQuery: '',
+                selectedCategory: 'all',
+                currentDate: new Date(),
+                channels: [],
+
+                get formattedDate() {
+                    return this.currentDate.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                },
+
+                async init() {
+                    // Simulating data initialization. 
+                    // In a production setup, you could fetch XMLTV feeds or JSON endpoints here.
+                    setTimeout(() => {
+                        this.channels = [
+                            {
+                                id: 'tvb_jade',
+                                name: 'TVB Jade (翡翠台)',
+                                channelNumber: '81',
+                                type: 'free',
+                                programs: [
+                                    { time: '18:30', title: 'News Report (六點半新聞報道)', description: 'Comprehensive local and international news updates.' },
+                                    { time: '19:00', title: 'Financial Report (財經報道)', description: 'Latest stock market updates and economic summaries.' },
+                                    { time: '19:30', title: 'Prime Time Drama Series', description: 'Popular regional drama broadcast.' },
+                                    { time: '21:30', title: 'Variety Entertainment Show', description: 'Local game and entertainment talk show.' }
+                                ]
+                            },
+                            {
+                                id: 'tvb_news',
+                                name: 'TVB News (無綫新聞台)',
+                                channelNumber: '83',
+                                type: 'free',
+                                programs: [
+                                    { time: '18:00', title: 'Interactive News Bulletin', description: 'Continuous rolling news coverage.' },
+                                    { time: '20:00', title: 'Hong Kong Live', description: 'In-depth reporting on local affairs.' },
+                                    { time: '21:00', title: 'Global Watch', description: 'International political and economic review.' }
+                                ]
+                            },
+                            {
+                                id: 'viutv_99',
+                                name: 'ViuTV',
+                                channelNumber: '99',
+                                type: 'free',
+                                programs: [
+                                    { time: '18:30', title: 'ViuTV News', description: 'Evening domestic news briefing.' },
+                                    { time: '19:30', title: 'Original Reality Program', description: 'Engaging lifestyle and unscripted local content.' },
+                                    { time: '21:30', title: 'Drama Series', description: 'Alternative contemporary series production.' }
+                                ]
+                            },
+                            {
+                                id: 'hoichun_77',
+                                name: 'HOY TV',
+                                channelNumber: '77',
+                                type: 'free',
+                                programs: [
+                                    { time: '18:00', title: 'HOY News', description: 'Local and global news coverage.' },
+                                    { time: '19:00', title: 'Travel & Food Exploration', description: 'Culinary adventures across Asia.' },
+                                    { time: '20:30', title: 'Documentary Series', description: 'Human interest and cultural features.' }
+                                ]
+                            },
+                            {
+                                id: 'rthk_31',
+                                name: 'RTHK TV 31',
+                                channelNumber: '31',
+                                type: 'free',
+                                programs: [
+                                    { time: '18:30', title: 'RTHK News', description: 'Public service news broadcast.' },
+                                    { time: '19:30', title: 'Arts and Culture Hong Kong', description: 'Showcasing local artists and cultural heritage.' },
+                                    { time: '20:30', title: 'Public Affairs Panel', description: 'Discussions on community development.' }
+                                ]
+                            },
+                            {
+                                id: 'now_sports_1',
+                                name: 'Now Sports Prime',
+                                channelNumber: '630',
+                                type: 'pay',
+                                programs: [
+                                    { time: '18:00', title: 'Live Football Match Build-up', description: 'Pre-match stats and expert analysis.' },
+                                    { time: '20:00', title: 'Live Premier League Action', description: 'Live broadcast of premium football fixtures.' },
+                                    { time: '22:30', title: 'Sports Highlights Review', description: 'Round-up of daily sporting events.' }
+                                ]
+                            }
+                        ];
+                        this.loading = false;
+                    }, 400);
+                },
+
+                get filteredChannels() {
+                    return this.channels.filter(channel => {
+                        const matchesCategory = this.selectedCategory === 'all' || channel.type === this.selectedCategory;
+                        const query = this.searchQuery.toLowerCase();
+                        const matchesSearch = channel.name.toLowerCase().includes(query) || 
+                            channel.programs.some(p => p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
+                        return matchesCategory && matchesSearch;
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>
