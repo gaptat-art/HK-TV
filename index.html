@@ -87,27 +87,27 @@
                         <span class="text-sm font-bold bg-white border-2 border-blue-300 px-3 py-1 rounded-full text-blue-800 shadow-sm" x-text="'CH ' + channel.channelNumber"></span>
                     </div>
 
-                    <!-- Program List (Full Day) -->
+                    <!-- Program List (Filtered by Day of Week) -->
                     <div class="divide-y-2 divide-gray-100 flex-grow max-h-[420px] overflow-y-auto">
-                        <template x-for="program in channel.programs" :key="program.time">
-                            <div :id="isTodaySelected() && isCurrentProgram(program, channel.programs) ? 'current-live-item' : ''"
+                        <template x-for="program in getChannelPrograms(channel)" :key="program.time">
+                            <div :id="isTodaySelected() && isCurrentProgram(program, getChannelPrograms(channel)) ? 'current-live-item' : ''"
                                 class="p-3.5 transition flex items-start gap-3"
-                                :class="isTodaySelected() && isCurrentProgram(program, channel.programs) ? 'bg-yellow-50 border-l-8 border-yellow-500 shadow-inner' : 'hover:bg-gray-50'">
+                                :class="isTodaySelected() && isCurrentProgram(program, getChannelPrograms(channel)) ? 'bg-yellow-50 border-l-8 border-yellow-500 shadow-inner' : 'hover:bg-gray-50'">
                                 <span class="text-xs font-mono font-bold px-2 py-1 rounded mt-0.5 flex-shrink-0 shadow-sm"
-                                    :class="isTodaySelected() && isCurrentProgram(program, channel.programs) ? 'bg-yellow-500 text-gray-900' : 'bg-gray-200 text-gray-800'"
+                                    :class="isTodaySelected() && isCurrentProgram(program, getChannelPrograms(channel)) ? 'bg-yellow-500 text-gray-900' : 'bg-gray-200 text-gray-800'"
                                     x-text="program.time"></span>
                                 
                                 <div class="flex-grow">
                                     <div class="flex items-center flex-wrap gap-2 mb-0.5">
                                         <h3 class="text-sm font-bold text-gray-900" x-text="program.title"></h3>
                                         <!-- Live Badge -->
-                                        <template x-if="isTodaySelected() && isCurrentProgram(program, channel.programs)">
+                                        <template x-if="isTodaySelected() && isCurrentProgram(program, getChannelPrograms(channel))">
                                             <span class="inline-flex items-center gap-1 bg-red-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider shadow-sm animate-pulse">
                                                 <span class="w-1.5 h-1.5 bg-white rounded-full"></span> 直播中
                                             </span>
                                         </template>
                                         <!-- Upcoming Badge -->
-                                        <template x-if="isTodaySelected() && isUpcomingProgram(program)">
+                                        <template x-if="isTodaySelected() && isUpcomingProgram(program, getChannelPrograms(channel))">
                                             <span class="text-[10px] bg-gray-200 text-gray-700 font-bold px-1.5 py-0.5 rounded">
                                                 即將播放
                                             </span>
@@ -191,6 +191,7 @@
                 daysList.push({
                     dateStr: dateStr,
                     dayOfWeek: d.toLocaleDateString('zh-HK', { weekday: 'short' }),
+                    dayOfWeekNum: d.getDay(), // 0: 星期日, 1: 星期一 ... 6: 星期六
                     displayDate: d.toLocaleDateString('zh-HK', { month: 'numeric', day: 'numeric' }),
                     isToday: i === 0
                 });
@@ -299,10 +300,10 @@
                                 channelNumber: '81',
                                 programs: [
                                     { time: '06:00', title: '香港早晨', description: '早間新聞、天氣及交通消息。' },
-                                    { time: '09:00', title: '交易現場', description: '直擊金融市場及港股走勢。' },
+                                    { time: '09:00', title: '交易現場', description: '直擊金融市場及港股走勢。', days: [1,2,3,4,5] }, // 星期一至五限定
                                     { time: '10:05', title: '高朋滿座', description: '經典處境喜劇重溫。' },
                                     { time: '12:00', title: '午間新聞', description: '中午重點新聞報道。' },
-                                    { time: '13:15', title: '流行都市', description: '消閒、烹飪及生活時尚資訊。' },
+                                    { time: '13:15', title: '流行都市', description: '消閒、烹飪及生活時尚資訊。', days: [1,2,3,4,5] }, // 星期一至五限定
                                     { time: '18:30', title: '六點半新聞報道', description: '報道本地及世界各地最新重點新聞。' },
                                     { time: '19:30', title: '東張西望', description: '深入探討社會熱話、民生及突發事件。' },
                                     { time: '20:00', title: '愛．回家之開心速遞', description: '輕鬆惹笑的皇牌長壽處境喜劇。' },
@@ -320,7 +321,7 @@
                                     { time: '12:00', title: '兩個小生去Camping', description: '輕鬆旅遊綜藝節目。' },
                                     { time: '16:00', title: '動畫世界 (多啦A夢)', description: '合家歡人氣日本動畫。' },
                                     { time: '20:30', title: 'J Music', description: '音樂現場表演與樂壇訪談。' },
-                                    { time: '22:00', title: '周六聊Teen谷', description: '年青人潮流話題清談節目。' }
+                                    { time: '22:00', title: '周六聊Teen谷', description: '年青人潮流話題清談節目。', days: [6] } // 星期六限定
                                 ]
                             },
                             {
@@ -351,8 +352,8 @@
                                 name: '無綫財經 資訊台',
                                 channelNumber: '85',
                                 programs: [
-                                    { time: '08:30', title: '智富通', description: '專業財經分析與投資策略。' },
-                                    { time: '13:30', title: '大市直擊', description: '午後港股走勢追蹤。' },
+                                    { time: '08:30', title: '智富通', description: '專業財經分析與投資策略。', days: [1,2,3,4,5] },
+                                    { time: '13:30', title: '大市直擊', description: '午後港股走勢追蹤。', days: [1,2,3,4,5] },
                                     { time: '20:00', title: '財經演義', description: '剖析宏觀經濟與行業趨勢。' }
                                 ]
                             },
@@ -387,7 +388,6 @@
                         ];
                         this.loading = false;
                         
-                        // 頁面初次載入完成且預設為今日時，自動滾動到現正直播節目
                         this.$nextTick(() => {
                             this.scrollToLiveProgram();
                         });
@@ -396,7 +396,6 @@
 
                 selectDate(dateStr) {
                     this.selectedDateStr = dateStr;
-                    // 如果切換回「今日」，自動對焦並捲動到直播中的節目
                     if (this.isTodaySelected()) {
                         this.$nextTick(() => {
                             this.scrollToLiveProgram();
@@ -409,6 +408,19 @@
                     if (el) {
                         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
+                },
+
+                getSelectedDayOfWeek() {
+                    const found = this.availableDays.find(d => d.dateStr === this.selectedDateStr);
+                    return found ? found.dayOfWeekNum : new Date(this.selectedDateStr).getDay();
+                },
+
+                getChannelPrograms(channel) {
+                    const dayNum = this.getSelectedDayOfWeek();
+                    return channel.programs.filter(p => {
+                        if (!p.days) return true; // 如果沒有設定限制，代表每天都播
+                        return p.days.includes(dayNum);
+                    });
                 },
 
                 getSelectedDateLabel() {
@@ -443,15 +455,26 @@
                     return currentMins >= startTime && currentMins < nextStartTime;
                 },
 
-                isUpcomingProgram(program) {
+                isUpcomingProgram(program, allPrograms) {
                     if (!this.isTodaySelected()) return false;
                     const currentMins = this.getCurrentTimeMinutes();
                     const startTime = this.timeToMinutes(program.time);
-                    return startTime > currentMins;
+                    const index = allPrograms.findIndex(p => p.time === program.time);
+                    
+                    // 判斷是否為「下一個即將播放」的節目
+                    if (index > 0) {
+                        const prevProgram = allPrograms[index - 1];
+                        if (this.isCurrentProgram(prevProgram, allPrograms)) {
+                            return startTime > currentMins;
+                        }
+                    }
+                    return false;
                 },
 
                 getCurrentProgramForChannel(channel) {
-                    const progs = channel.programs;
+                    const progs = this.getChannelPrograms(channel);
+                    if (!progs || progs.length === 0) return { title: '暫無節目', time: '--:--', description: '' };
+                    
                     const currentMins = this.getCurrentTimeMinutes();
                     let activeProg = progs[0];
 
@@ -467,11 +490,13 @@
                 },
 
                 get filteredChannels() {
+                    const dayNum = this.getSelectedDayOfWeek();
                     return this.channels.filter(channel => {
                         const query = this.searchQuery.toLowerCase();
+                        const dailyProgs = channel.programs.filter(p => !p.days || p.days.includes(dayNum));
                         return channel.name.toLowerCase().includes(query) || 
                             channel.channelNumber.toLowerCase().includes(query) ||
-                            channel.programs.some(p => p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
+                            dailyProgs.some(p => p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
                     });
                 }
             }
