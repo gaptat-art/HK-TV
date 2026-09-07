@@ -53,7 +53,7 @@
             </div>
             <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
                 <template x-for="day in availableDays" :key="day.dateStr">
-                    <button @click="selectedDateStr = day.dateStr"
+                    <button @click="selectDate(day.dateStr)"
                         :class="selectedDateStr === day.dateStr ? 'bg-blue-700 text-white shadow border-blue-700 scale-105' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'"
                         class="px-4 py-2 rounded-xl border text-center transition flex-shrink-0 flex flex-col items-center min-w-[85px]">
                         <span class="text-[11px] font-bold uppercase opacity-85" x-text="day.dayOfWeek"></span>
@@ -90,8 +90,9 @@
                     <!-- Program List (Full Day) -->
                     <div class="divide-y-2 divide-gray-100 flex-grow max-h-[420px] overflow-y-auto">
                         <template x-for="program in channel.programs" :key="program.time">
-                            <div class="p-3.5 transition flex items-start gap-3"
-                                :class="isTodaySelected() && isCurrentProgram(program, channel.programs) ? 'bg-yellow-50 border-l-8 border-yellow-500' : 'hover:bg-gray-50'">
+                            <div :id="isTodaySelected() && isCurrentProgram(program, channel.programs) ? 'current-live-item' : ''"
+                                class="p-3.5 transition flex items-start gap-3"
+                                :class="isTodaySelected() && isCurrentProgram(program, channel.programs) ? 'bg-yellow-50 border-l-8 border-yellow-500 shadow-inner' : 'hover:bg-gray-50'">
                                 <span class="text-xs font-mono font-bold px-2 py-1 rounded mt-0.5 flex-shrink-0 shadow-sm"
                                     :class="isTodaySelected() && isCurrentProgram(program, channel.programs) ? 'bg-yellow-500 text-gray-900' : 'bg-gray-200 text-gray-800'"
                                     x-text="program.time"></span>
@@ -385,7 +386,29 @@
                             }
                         ];
                         this.loading = false;
+                        
+                        // 頁面初次載入完成且預設為今日時，自動滾動到現正直播節目
+                        this.$nextTick(() => {
+                            this.scrollToLiveProgram();
+                        });
                     }, 200);
+                },
+
+                selectDate(dateStr) {
+                    this.selectedDateStr = dateStr;
+                    // 如果切換回「今日」，自動對焦並捲動到直播中的節目
+                    if (this.isTodaySelected()) {
+                        this.$nextTick(() => {
+                            this.scrollToLiveProgram();
+                        });
+                    }
+                },
+
+                scrollToLiveProgram() {
+                    const el = document.getElementById('current-live-item');
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
                 },
 
                 getSelectedDateLabel() {
