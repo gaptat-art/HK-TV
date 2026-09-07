@@ -158,7 +158,8 @@
                 <template x-for="channel in channels" :key="'live-' + channel.id">
                     <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-gray-50 px-3 rounded-xl transition">
                         <div class="flex items-center gap-3">
-                            <span class="bg-blue-700 text-white text-xs font-extrabold px-2.5 py-1 rounded-lg">CH ' + channel.channelNumber + '</span>
+                            <!-- Fixed channel badge x-text syntax here -->
+                            <span class="bg-blue-700 text-white text-xs font-extrabold px-2.5 py-1 rounded-lg" x-text="'CH ' + channel.channelNumber"></span>
                             <div>
                                 <h4 class="text-sm font-bold text-gray-900" x-text="channel.name"></h4>
                                 <div class="text-xs text-red-600 font-bold mt-0.5 flex items-center gap-1.5">
