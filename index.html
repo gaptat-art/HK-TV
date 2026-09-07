@@ -49,7 +49,6 @@
                     class="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 text-lg shadow-inner">
             </div>
 
-            <!-- Channel Category Tabs (Simplified to Free TV only) -->
             <div class="flex gap-3 w-full lg:w-auto">
                 <button class="bg-blue-700 text-white shadow-md px-6 py-3 rounded-xl text-base font-bold transition flex-1 sm:flex-none">
                     免費電視頻道
@@ -134,12 +133,10 @@
                 channels: [],
 
                 init() {
-                    // Update live clock every second
                     setInterval(() => {
                         this.now = new Date();
                     }, 1000);
 
-                    // Load Free-to-Air channels only
                     setTimeout(() => {
                         this.channels = [
                             {
@@ -152,6 +149,17 @@
                                     { time: '20:30', title: '愛．回家之開心速遞', description: '輕鬆惹笑的皇牌長壽處境喜劇。' },
                                     { time: '21:30', title: '黃金檔精選連續劇', description: '匯聚實力派演員的重頭壓軸劇集。' },
                                     { time: '23:15', title: '晚間新聞', description: '總結全日重要新聞與財經動向。' }
+                                ]
+                            },
+                            {
+                                id: 'tvb_pearl',
+                                name: '明珠台 (TVB Pearl)',
+                                channelNumber: '84',
+                                programs: [
+                                    { time: '18:00', title: '金融資訊 / 兒童節目', description: '精選英文兒童節目或財經匯報。' },
+                                    { time: '19:30', title: '明珠檔案 (Pearl Magazine)', description: '深入探討社會及國際議題的英文專題節目。' },
+                                    { time: '20:00', title: '明珠930電影 (Pearl Movie)', description: '播放荷里活猛片及環球得獎電影。' },
+                                    { time: '22:30', title: '晚間英文新聞 (Financial News / News Report)', description: '國際視野的英語新聞報道。' }
                                 ]
                             },
                             {
