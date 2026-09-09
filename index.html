@@ -1,323 +1,302 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>香港免費電視節目表 - 真實 EPG 數據源串接版</title>
-    <!-- Tailwind CSS for modern styling -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trip Expense & Currency Calculator</title>
+    <!-- Tailwind CSS for modern mobile-first styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js for lightweight reactivity -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 text-gray-900 font-sans antialiased min-h-screen flex flex-col" x-data="tvApp()">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans" x-data="tripApp()">
 
     <!-- Header -->
-    <header class="bg-blue-700 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-            <h1 class="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-                <i class="fa-solid fa-tv text-yellow-300"></i> 香港免費電視節目表 (真實 EPG 數據源)
-            </h1>
-            <p class="text-blue-100 text-sm sm:text-base mt-1">實時串接香港公開廣播 EPG 數據與直播導航</p>
+    <header class="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-50 shadow-md">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-tight text-blue-400">✈️ TripWallet</h1>
+            <div class="text-sm bg-slate-700 px-3 py-1 rounded-full text-slate-300">
+                <span x-text="trips.length"></span> Trips
+            </div>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex-grow w-full">
-        
-        <!-- Top Action Bar -->
-        <div class="flex flex-col lg:flex-row justify-between items-center gap-4 mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-200">
-            <!-- Search Bar -->
-            <div class="relative w-full lg:w-80">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 text-base">
-                    <i class="fa-solid fa-search"></i>
-                </span>
-                <input type="text" x-model="searchQuery" placeholder="搜尋真實節目、頻道..." 
-                    class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 text-base shadow-inner">
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-md w-full mx-auto p-4 pb-24 space-y-6">
+
+        <!-- NO TRIPS STATE -->
+        <template x-if="trips.length === 0">
+            <div class="text-center py-12 space-y-4">
+                <div class="text-5xl">🎒</div>
+                <h2 class="text-lg font-semibold">No trips added yet</h2>
+                <p class="text-sm text-slate-400">Create your first trip to start tracking expenses and currencies.</p>
+                <button @click="openNewTripModal = true" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-6 py-2.5 rounded-xl shadow-lg transition">
+                    + Add New Trip
+                </button>
             </div>
+        </template>
 
-            <!-- Live Now Button -->
-            <button @click="showLiveModal = true" class="w-full lg:w-auto bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-xl shadow transition flex items-center justify-center gap-2.5 animate-pulse">
-                <i class="fa-solid fa-satellite-dish text-yellow-300"></i>
-                <span>🔥 查看現正直播總覽 (真實 Feed)</span>
-            </button>
-        </div>
-
-        <!-- Date Selector (7-Day Strip) -->
-        <div class="mb-6 bg-white px-4 py-3 rounded-2xl shadow-sm border border-gray-200">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-xs sm:text-sm font-bold text-gray-600 flex items-center gap-1.5">
-                    <i class="fa-solid fa-calendar-days text-blue-700"></i> 選擇日期
-                </span>
-                <span class="text-xs font-bold text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200" x-text="getSelectedDateLabel()"></span>
-            </div>
-            <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
-                <template x-for="day in availableDays" :key="day.dateStr">
-                    <button @click="selectDate(day.dateStr)"
-                        :class="selectedDateStr === day.dateStr ? 'bg-blue-700 text-white shadow border-blue-700 scale-105' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'"
-                        class="px-4 py-2 rounded-xl border text-center transition flex-shrink-0 flex flex-col items-center min-w-[85px]">
-                        <span class="text-[11px] font-bold uppercase opacity-85" x-text="day.dayOfWeek"></span>
-                        <span class="text-base font-extrabold" x-text="day.displayDate"></span>
-                        <span class="text-[10px] mt-0.5 font-semibold px-1.5 rounded"
-                            :class="selectedDateStr === day.dateStr ? 'bg-blue-800 text-yellow-200' : 'bg-gray-200 text-gray-600'"
-                            x-text="day.isToday ? '今日' : '預告'"></span>
-                    </button>
-                </template>
-            </div>
-        </div>
-
-        <!-- Loading State -->
-        <div x-show="loading" class="flex flex-col items-center justify-center py-20">
-            <i class="fa-solid fa-circle-notch fa-spin text-5xl text-blue-700 mb-4"></i>
-            <p class="text-gray-600 text-base font-medium" x-text="loadingText"></p>
-        </div>
-
-        <!-- Error State -->
-        <div x-show="errorMsg" class="bg-red-50 border-2 border-red-300 text-red-700 p-6 rounded-2xl text-center mb-6" x-cloak>
-            <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i>
-            <p class="font-bold" x-text="errorMsg"></p>
-            <button @click="fetchRealFeed()" class="mt-4 bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-bold">重新載入</button>
-        </div>
-
-        <!-- Schedule Grid -->
-        <div x-show="!loading && !errorMsg" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <template x-for="channel in filteredChannels" :key="channel.id">
-                <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 overflow-hidden flex flex-col hover:shadow-lg transition">
-                    <!-- Channel Header -->
-                    <div class="bg-blue-50 px-5 py-3.5 border-b-2 border-gray-200 flex justify-between items-center">
-                        <div>
-                            <span class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-green-200 text-green-950">
-                               真實 EPG 頻道
-                            </span>
-                            <h2 class="text-lg font-extrabold text-gray-900 mt-1" x-text="channel.name"></h2>
-                        </div>
-                        <span class="text-xs font-mono font-bold bg-white border-2 border-blue-300 px-3 py-1 rounded-full text-blue-800 shadow-sm" x-text="channel.id"></span>
-                    </div>
-
-                    <!-- Program List -->
-                    <div class="divide-y-2 divide-gray-100 flex-grow max-h-[420px] overflow-y-auto">
-                        <template x-for="program in getChannelPrograms(channel)" :key="program.time + program.title + program.date">
-                            <div class="p-3.5 transition flex items-start gap-3 hover:bg-gray-50">
-                                <span class="text-xs font-mono font-bold px-2 py-1 rounded mt-0.5 flex-shrink-0 bg-gray-200 text-gray-800" x-text="program.time"></span>
-                                <div class="flex-grow">
-                                    <h3 class="text-sm font-bold text-gray-900" x-text="program.title"></h3>
-                                    <p class="text-xs text-gray-600 leading-relaxed mt-0.5" x-text="program.description"></p>
-                                </div>
-                            </div>
+        <!-- ACTIVE TRIP VIEW -->
+        <template x-if="trips.length > 0 && activeTrip">
+            <div class="space-y-6">
+                
+                <!-- Trip Selector & Controls -->
+                <div class="flex items-center justify-between bg-slate-800 p-3 rounded-2xl border border-slate-700">
+                    <select x-model="activeTripId" class="bg-transparent text-white font-semibold outline-none w-full pr-2">
+                        <template x-for="trip in trips" :key="trip.id">
+                            <option :value="trip.id" x-text="trip.name" class="bg-slate-800 text-white"></option>
                         </template>
-                        <div x-show="getChannelPrograms(channel).length === 0" class="p-6 text-center text-gray-400 text-xs">
-                            此日期暫無節目表資料
+                    </select>
+                    <button @click="openNewTripModal = true" class="text-xs bg-slate-700 hover:bg-slate-600 px-2.5 py-1.5 rounded-lg text-blue-300 font-medium whitespace-nowrap ml-2">
+                        + New
+                    </button>
+                </div>
+
+                <!-- Summary Card -->
+                <div class="bg-gradient-to-br from-blue-900/40 to-slate-800 p-5 rounded-2xl border border-blue-500/30 shadow-lg space-y-3">
+                    <div class="flex justify-between items-center text-xs text-slate-400 uppercase tracking-wider">
+                        <span>Total Spent (<span x-text="activeTrip.homeCurrency"></span>)</span>
+                        <span>Exchange Rate</span>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-3xl font-extrabold text-white" x-text="activeTrip.homeCurrency + ' ' + totalSpentHome.toFixed(2)"></span>
+                        <div class="text-right">
+                            <span class="text-sm font-medium text-slate-300" x-text="'1 ' + activeTrip.foreignCurrency + ' = ' + activeTrip.exchangeRate + ' ' + activeTrip.homeCurrency"></span>
+                            <button @click="editRate()" class="block text-xs text-blue-400 hover:underline mt-0.5">Edit Rate</button>
                         </div>
                     </div>
                 </div>
-            </template>
-        </div>
-    </main>
 
-    <!-- LIVE NOW MODAL -->
-    <div x-show="showLiveModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" x-cloak>
-        <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden border-2 border-red-500">
-            <div class="bg-red-600 text-white px-6 py-4 flex justify-between items-center">
-                <h3 class="text-lg font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-satellite-dish text-yellow-300 animate-pulse"></i> 現正直播總覽 (真實 EPG 數據)
-                </h3>
-                <button @click="showLiveModal = false" class="text-white hover:text-yellow-200 text-xl font-bold px-2">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="p-6 overflow-y-auto divide-y divide-gray-100 flex-grow">
-                <template x-for="channel in channels" :key="'live-' + channel.id">
-                    <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-gray-50 px-3 rounded-xl transition">
-                        <div class="flex items-center gap-3">
-                            <span class="bg-blue-700 text-white text-xs font-extrabold px-2.5 py-1 rounded-lg" x-text="channel.id"></span>
-                            <div>
-                                <h4 class="text-sm font-bold text-gray-900" x-text="channel.name"></h4>
-                                <div class="text-xs text-red-600 font-bold mt-0.5 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-circle text-[8px] animate-ping"></i>
-                                    <span x-text="getCurrentProgramForChannel(channel).title"></span>
-                                </div>
-                            </div>
+                <!-- Quick Currency Converter Widget -->
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Quick Converter</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1" x-text="activeTrip.foreignCurrency"></label>
+                            <input type="number" inputmode="decimal" x-model.number="quickForeign" @input="convertFromForeign()" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
                         </div>
-                        <div class="text-right text-xs text-gray-500 font-mono bg-gray-100 px-3 py-1.5 rounded-lg">
-                            時間: <span class="font-bold text-gray-800" x-text="getCurrentProgramForChannel(channel).time"></span>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1" x-text="activeTrip.homeCurrency"></label>
+                            <input type="number" inputmode="decimal" x-model.number="quickHome" @input="convertFromHome()" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
                         </div>
                     </div>
-                </template>
+                </div>
+
+                <!-- Expense Actions -->
+                <div class="flex gap-3">
+                    <button @click="openExpenseModal = true" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl shadow-lg transition text-center">
+                        + Add Expense
+                    </button>
+                    <button @click="deleteCurrentTrip()" class="bg-slate-800 hover:bg-red-900/40 text-red-400 border border-slate-700 hover:border-red-500/40 px-4 rounded-xl transition text-sm">
+                        🗑️
+                    </button>
+                </div>
+
+                <!-- Expense History List -->
+                <div class="space-y-3">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Expense History</h3>
+                    
+                    <template x-if="activeTrip.expenses.length === 0">
+                        <div class="text-center py-8 bg-slate-800/50 rounded-2xl border border-dashed border-slate-700 text-slate-400 text-sm">
+                            No expenses logged yet. Tap above to add one!
+                        </div>
+                    </template>
+
+                    <div class="space-y-2">
+                        <template x-for="expense in activeTrip.expenses" :key="expense.id">
+                            <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex justify-between items-center">
+                                <div>
+                                    <div class="font-medium text-white text-sm" x-text="expense.title"></div>
+                                    <div class="text-xs text-slate-400 flex gap-2 mt-0.5">
+                                        <span x-text="expense.date"></span>
+                                        <span>•</span>
+                                        <span class="bg-slate-700 px-1.5 py-0.5 rounded text-slate-300" x-text="expense.category"></span>
+                                    </div>
+                                </div>
+                                <div class="text-right flex items-center gap-3">
+                                    <div>
+                                        <div class="text-sm font-bold text-white" x-text="activeTrip.foreignCurrency + ' ' + expense.amount.toFixed(2)"></div>
+                                        <div class="text-xs text-slate-400" x-text="activeTrip.homeCurrency + ' ' + (expense.amount * activeTrip.exchangeRate).toFixed(2)"></div>
+                                    </div>
+                                    <button @click="deleteExpense(expense.id)" class="text-slate-500 hover:text-red-400 text-sm p-1">✕</button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
             </div>
-            <div class="bg-gray-50 px-6 py-3.5 border-t border-gray-200 text-center">
-                <button @click="showLiveModal = false" class="bg-gray-800 text-white font-bold px-6 py-2 rounded-xl text-sm shadow">
-                    關閉總覽
-                </button>
+        </template>
+
+    </main>
+
+    <!-- MODAL: New Trip -->
+    <div x-show="openNewTripModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50" style="display: none;">
+        <div class="bg-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 border border-slate-700 space-y-4 shadow-2xl">
+            <h2 class="text-lg font-bold text-white">Create New Trip</h2>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Trip Name (e.g., Tokyo Spring)</label>
+                    <input type="text" x-model="newTripForm.name" placeholder="Japan Trip" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Home Currency</label>
+                        <input type="text" x-model="newTripForm.homeCurrency" placeholder="HKD" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white uppercase focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Foreign Currency</label>
+                        <input type="text" x-model="newTripForm.foreignCurrency" placeholder="JPY" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white uppercase focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Exchange Rate (1 Foreign = ? Home)</label>
+                    <input type="number" inputmode="decimal" x-model.number="newTripForm.exchangeRate" placeholder="0.052" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button @click="openNewTripModal = false" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 rounded-xl transition">Cancel</button>
+                <button @click="createTrip()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition">Save Trip</button>
             </div>
         </div>
     </div>
 
-    <!-- Application Script -->
-    <script>
-        function tvApp() {
-            const today = new Date();
-            const daysList = [];
-            for (let i = 0; i < 7; i++) {
-                const d = new Date(today);
-                d.setDate(today.getDate() + i);
-                const year = d.getFullYear();
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                const dateStr = `${year}-${month}-${day}`;
-                
-                daysList.push({
-                    dateStr: dateStr,
-                    dayOfWeek: d.toLocaleDateString('zh-HK', { weekday: 'short' }),
-                    displayDate: d.toLocaleDateString('zh-HK', { month: 'numeric', day: 'numeric' }),
-                    isToday: i === 0
-                });
-            }
+    <!-- MODAL: Add Expense -->
+    <div x-show="openExpenseModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50" style="display: none;">
+        <div class="bg-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 border border-slate-700 space-y-4 shadow-2xl" x-data="{ title: '', amount: '', category: 'Food' }">
+            <h2 class="text-lg font-bold text-white">Add Expense</h2>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Description</label>
+                    <input type="text" x-model="title" placeholder="Ramen lunch" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1" x-text="'Amount (' + activeTrip.foreignCurrency + ')'"></label>
+                    <input type="number" inputmode="decimal" x-model.number="amount" placeholder="1200" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Category</label>
+                    <select x-model="category" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                        <option value="Food">🍽️ Food & Drink</option>
+                        <option value="Shopping">🛍️ Shopping</option>
+                        <option value="Transport">🚆 Transport</option>
+                        <option value="Hotel">🏨 Hotel / Stay</option>
+                        <option value="Activity">🎟️ Activity / Ticket</option>
+                        <option value="Other">📦 Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button @click="openExpenseModal = false" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 rounded-xl transition">Cancel</button>
+                <button @click="addExpense(title, amount, category); openExpenseModal = false; title=''; amount='';" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition">Add</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Alpine JS App Logic -->
+    <script>
+        function tripApp() {
             return {
-                loading: true,
-                loadingText: '正在從公開 EPG 伺服器下載真實香港電視節目 Feed...',
-                errorMsg: '',
-                searchQuery: '',
-                showLiveModal: false,
-                now: new Date(),
-                availableDays: daysList,
-                selectedDateStr: daysList[0].dateStr,
-                channels: [],
+                trips: JSON.parse(localStorage.getItem('tripwallet_trips')) || [],
+                activeTripId: localStorage.getItem('tripwallet_active') || null,
+                openNewTripModal: false,
+                openExpenseModal: false,
+                
+                newTripForm: {
+                    name: '',
+                    homeCurrency: 'HKD',
+                    foreignCurrency: 'JPY',
+                    exchangeRate: 0.052
+                },
+
+                quickForeign: '',
+                quickHome: '',
+
+                get activeTrip() {
+                    if (!this.activeTripId && this.trips.length > 0) {
+                        this.activeTripId = this.trips[0].id;
+                    }
+                    return this.trips.find(t => t.id === this.activeTripId) || null;
+                },
+
+                get totalSpentHome() {
+                    if (!this.activeTrip) return 0;
+                    const totalForeign = this.activeTrip.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+                    return totalForeign * this.activeTrip.exchangeRate;
+                },
 
                 init() {
-                    setInterval(() => {
-                        this.now = new Date();
-                    }, 1000);
-
-                    this.fetchRealFeed();
-                },
-
-                async fetchRealFeed() {
-                    this.loading = true;
-                    this.errorMsg = '';
-                    this.loadingText = '正在下載香港電視 EPG XMLTV 數據源...';
-
-                    try {
-                        // 使用公開的香港 EPG XMLTV 數據源透過 CORS 代理讀取
-                        const xmlUrl = 'https://epg.pw/xmltv/epg_HK.xml';
-                        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(xmlUrl);
-                        
-                        const response = await fetch(proxyUrl);
-                        if (!response.ok) throw new Error('無法連線至 EPG 數據源伺服器');
-                        
-                        const xmlText = await response.text();
-                        this.loadingText = '正在解析節目表數據...';
-                        
-                        const parser = new DOMParser();
-                        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-                        
-                        // 解析頻道
-                        const channelNodes = xmlDoc.getElementsByTagName('channel');
-                        let channelsMap = {};
-                        for (let node of channelNodes) {
-                            let id = node.getAttribute('id');
-                            let nameNode = node.getElementsByTagName('display-name')[0];
-                            let name = nameNode ? nameNode.textContent : id;
-                            channelsMap[id] = {
-                                id: id,
-                                name: name,
-                                programs: []
-                            };
-                        }
-                        
-                        // 解析節目
-                        const progNodes = xmlDoc.getElementsByTagName('programme');
-                        for (let node of progNodes) {
-                            let channelId = node.getAttribute('channel');
-                            let startStr = node.getAttribute('start'); // 格式: YYYYMMDDHHmmss ZZZZ
-                            let titleNode = node.getElementsByTagName('title')[0];
-                            let descNode = node.getElementsByTagName('desc')[0];
-                            
-                            if (channelsMap[channelId]) {
-                                let title = titleNode ? titleNode.textContent : '未知節目';
-                                let desc = descNode ? descNode.textContent : '暫無詳細節目介紹。';
-                                
-                                if (startStr && startStr.length >= 12) {
-                                    let year = startStr.slice(0, 4);
-                                    let month = startStr.slice(4, 6);
-                                    let day = startStr.slice(6, 8);
-                                    let hour = startStr.slice(8, 10);
-                                    let minute = startStr.slice(10, 12);
-                                    let dateStr = `${year}-${month}-${day}`;
-                                    let timeStr = `${hour}:${minute}`;
-                                    
-                                    channelsMap[channelId].programs.push({
-                                        date: dateStr,
-                                        time: timeStr,
-                                        title: title,
-                                        description: desc
-                                    });
-                                }
-                            }
-                        }
-                        
-                        // 過濾出有節目資料的頻道
-                        this.channels = Object.values(channelsMap).filter(c => c.programs.length > 0);
-                        if (this.channels.length === 0) {
-                            throw new Error('未能在 Feed 中找到有效的香港電視頻道資料');
-                        }
-
-                    } catch (err) {
-                        console.error(err);
-                        this.errorMsg = '載入真實 Feed 失敗：' + err.message + '（可能受限於網路或代理伺服器回應）';
-                    } finally {
-                        this.loading = false;
-                    }
-                },
-
-                selectDate(dateStr) {
-                    this.selectedDateStr = dateStr;
-                },
-
-                getSelectedDateLabel() {
-                    const found = this.availableDays.find(d => d.dateStr === this.selectedDateStr);
-                    return found ? `${found.displayDate} (${found.dayOfWeek})` : this.selectedDateStr;
-                },
-
-                getChannelPrograms(channel) {
-                    return channel.programs.filter(p => p.date === this.selectedDateStr);
-                },
-
-                timeToMinutes(timeStr) {
-                    const [hours, minutes] = timeStr.split(':').map(Number);
-                    return hours * 60 + minutes;
-                },
-
-                getCurrentTimeMinutes() {
-                    return this.now.getHours() * 60 + this.now.getMinutes();
-                },
-
-                getCurrentProgramForChannel(channel) {
-                    const progs = this.getChannelPrograms(channel);
-                    if (!progs || progs.length === 0) return { title: '暫無節目', time: '--:--', description: '' };
-                    
-                    const currentMins = this.getCurrentTimeMinutes();
-                    let activeProg = progs[0];
-
-                    for (let i = 0; i < progs.length; i++) {
-                        const startMins = this.timeToMinutes(progs[i].time);
-                        if (currentMins >= startMins) {
-                            activeProg = progs[i];
-                        } else {
-                            break;
-                        }
-                    }
-                    return activeProg;
-                },
-
-                get filteredChannels() {
-                    return this.channels.filter(channel => {
-                        const query = this.searchQuery.toLowerCase();
-                        const dailyProgs = this.getChannelPrograms(channel);
-                        return channel.name.toLowerCase().includes(query) || 
-                            channel.id.toLowerCase().includes(query) ||
-                            dailyProgs.some(p => p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
+                    this.$watch('trips', (val) => {
+                        localStorage.setItem('tripwallet_trips', JSON.stringify(val));
                     });
+                    this.$watch('activeTripId', (val) => {
+                        localStorage.setItem('tripwallet_active', val);
+                    });
+                },
+
+                createTrip() {
+                    if (!this.newTripForm.name) return;
+                    const newTrip = {
+                        id: Date.now().toString(),
+                        name: this.newTripForm.name,
+                        homeCurrency: this.newTripForm.homeCurrency.toUpperCase(),
+                        foreignCurrency: this.newTripForm.foreignCurrency.toUpperCase(),
+                        exchangeRate: Number(this.newTripForm.exchangeRate) || 1,
+                        expenses: []
+                    };
+                    this.trips.push(newTrip);
+                    this.activeTripId = newTrip.id;
+                    this.newTripForm.name = '';
+                    this.openNewTripModal = false;
+                },
+
+                deleteCurrentTrip() {
+                    if (confirm('Are you sure you want to delete this trip and all its expenses?')) {
+                        this.trips = this.trips.filter(t => t.id !== this.activeTripId);
+                        this.activeTripId = this.trips.length > 0 ? this.trips[0].id : null;
+                    }
+                },
+
+                addExpense(title, amount, category) {
+                    if (!amount || amount <= 0) return;
+                    const newExp = {
+                        id: Date.now().toString(),
+                        title: title || 'Untitled Expense',
+                        amount: Number(amount),
+                        category: category,
+                        date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                    };
+                    this.activeTrip.expenses.unshift(newExp);
+                    // trigger reactivity update
+                    this.trips = [...this.trips];
+                },
+
+                deleteExpense(expenseId) {
+                    this.activeTrip.expenses = this.activeTrip.expenses.filter(e => e.id !== expenseId);
+                    this.trips = [...this.trips];
+                },
+
+                editRate() {
+                    const newRate = prompt('Enter new exchange rate (1 ' + this.activeTrip.foreignCurrency + ' = ? ' + this.activeTrip.homeCurrency + '):', this.activeTrip.exchangeRate);
+                    if (newRate !== null && !isNaN(newRate) && newRate > 0) {
+                        this.activeTrip.exchangeRate = Number(newRate);
+                        this.trips = [...this.trips];
+                    }
+                },
+
+                convertFromForeign() {
+                    if (this.activeTrip && this.quickForeign !== '') {
+                        this.quickHome = Number((this.quickForeign * this.activeTrip.exchangeRate).toFixed(2));
+                    } else {
+                        this.quickHome = '';
+                    }
+                },
+
+                convertFromHome() {
+                    if (this.activeTrip && this.quickHome !== '' && this.activeTrip.exchangeRate > 0) {
+                        this.quickForeign = Number((this.quickHome / this.activeTrip.exchangeRate).toFixed(2));
+                    } else {
+                        this.quickForeign = '';
+                    }
                 }
             }
         }
