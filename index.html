@@ -204,8 +204,8 @@
     <script>
         function tripApp() {
             return {
-                trips: JSON.parse(localStorage.getItem('tripwallet_trips_v2')) || [],
-                activeTripId: localStorage.getItem('tripwallet_active_v2') || null,
+                trips: JSON.parse(localStorage.getItem('tripwallet_trips_v3')) || [],
+                activeTripId: localStorage.getItem('tripwallet_active_v3') || null,
                 openNewTripModal: false,
                 openExpenseModal: false,
                 isFetching: false,
@@ -234,10 +234,10 @@
 
                 init() {
                     this.$watch('trips', (val) => {
-                        localStorage.setItem('tripwallet_trips_v2', JSON.stringify(val));
+                        localStorage.setItem('tripwallet_trips_v3', JSON.stringify(val));
                     });
                     this.$watch('activeTripId', (val) => {
-                        localStorage.setItem('tripwallet_active_v2', val);
+                        localStorage.setItem('tripwallet_active_v3', val);
                     });
                 },
 
@@ -249,7 +249,8 @@
                     let rate = 1; 
 
                     try {
-                        const res = await fetch(`https://api.frankfurter.app/latest?from=${foreign}&to=${home}`);
+                        // Correct API format: base is foreign, symbols is home
+                        const res = await fetch(`https://api.frankfurter.dev/v1/latest?base=${foreign}&symbols=${home}`);
                         const data = await res.json();
                         if (data && data.rates && data.rates[home]) {
                             rate = data.rates[home];
@@ -279,11 +280,12 @@
                     try {
                         const home = this.activeTrip.homeCurrency;
                         const foreign = this.activeTrip.foreignCurrency;
-                        const res = await fetch(`https://api.frankfurter.app/latest?from=${foreign}&to=${home}`);
+                        const res = await fetch(`https://api.frankfurter.dev/v1/latest?base=${foreign}&symbols=${home}`);
                         const data = await res.json();
                         if (data && data.rates && data.rates[home]) {
                             this.activeTrip.exchangeRate = Number(data.rates[home].toFixed(4));
                             this.trips = [...this.trips];
+                            alert('Exchange rate updated successfully!');
                         } else {
                             alert('Could not retrieve latest rate for this currency pair.');
                         }
@@ -296,7 +298,6 @@
 
                 deleteCurrentTrip() {
                     const tripName = this.activeTrip.name;
-                    // Double security confirmation prompt requiring exact name or clear intent
                     const confirmation = prompt(`⚠️ DANGER: You are about to delete "${tripName}" and all its expenses.\n\nType the name of the trip to confirm deletion:`);
                     
                     if (confirmation === tripName) {
