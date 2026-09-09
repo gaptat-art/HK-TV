@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Trip Expense & Currency Calculator</title>
-    <!-- Tailwind CSS for modern mobile-first styling -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine JS -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans" x-data="tripApp()">
@@ -61,7 +62,13 @@
                         <span class="text-3xl font-extrabold text-white" x-text="activeTrip.homeCurrency + ' ' + totalSpentHome.toFixed(2)"></span>
                         <div class="text-right">
                             <span class="text-sm font-medium text-slate-300" x-text="'1 ' + activeTrip.foreignCurrency + ' = ' + activeTrip.exchangeRate + ' ' + activeTrip.homeCurrency"></span>
-                            <button @click="editRate()" class="block text-xs text-blue-400 hover:underline mt-0.5">Edit Rate</button>
+                            <div class="flex gap-2 justify-end mt-1">
+                                <button @click="fetchLiveRate()" class="text-xs text-emerald-400 hover:underline flex items-center gap-1">
+                                    <span :class="{'animate-spin': isFetching}">🔄</span> Update Rate
+                                </button>
+                                <span class="text-slate-600">|</span>
+                                <button @click="editRate()" class="text-xs text-blue-400 hover:underline">Manual</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -135,8 +142,8 @@
             <h2 class="text-lg font-bold text-white">Create New Trip</h2>
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Trip Name (e.g., Tokyo Spring)</label>
-                    <input type="text" x-model="newTripForm.name" placeholder="Japan Trip" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                    <label class="block text-xs text-slate-400 mb-1">Trip Name</label>
+                    <input type="text" x-model="newTripForm.name" placeholder="Tokyo Spring" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -148,11 +155,8 @@
                         <input type="text" x-model="newTripForm.foreignCurrency" placeholder="JPY" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white uppercase focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Exchange Rate (1 Foreign = ? Home)</label>
-                    <input type="number" inputmode="decimal" x-model.number="newTripForm.exchangeRate" placeholder="0.052" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
-                </div>
             </div>
+            <p class="text-xs text-slate-400">💡 Exchange rate will be automatically fetched upon creation.</p>
             <div class="flex gap-3 pt-2">
                 <button @click="openNewTripModal = false" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 rounded-xl transition">Cancel</button>
                 <button @click="createTrip()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition">Save Trip</button>
@@ -196,16 +200,16 @@
     <script>
         function tripApp() {
             return {
-                trips: JSON.parse(localStorage.getItem('tripwallet_trips')) || [],
-                activeTripId: localStorage.getItem('tripwallet_active') || null,
+                trips: JSON.parse(localStorage.getItem('tripwallet_trips_v2')) || [],
+                activeTripId: localStorage.getItem('tripwallet_active_v2') || null,
                 openNewTripModal: false,
                 openExpenseModal: false,
+                isFetching: false,
                 
                 newTripForm: {
                     name: '',
                     homeCurrency: 'HKD',
-                    foreignCurrency: 'JPY',
-                    exchangeRate: 0.052
+                    foreignCurrency: 'JPY'
                 },
 
                 quickForeign: '',
@@ -226,27 +230,67 @@
 
                 init() {
                     this.$watch('trips', (val) => {
-                        localStorage.setItem('tripwallet_trips', JSON.stringify(val));
+                        localStorage.setItem('tripwallet_trips_v2', JSON.stringify(val));
                     });
                     this.$watch('activeTripId', (val) => {
-                        localStorage.setItem('tripwallet_active', val);
+                        localStorage.setItem('tripwallet_active_v2', val);
                     });
                 },
 
-                createTrip() {
+                async createTrip() {
                     if (!this.newTripForm.name) return;
+                    
+                    const home = this.newTripForm.homeCurrency.toUpperCase();
+                    const foreign = this.newTripForm.foreignCurrency.toUpperCase();
+                    
+                    // Default fallback rate if fetch fails
+                    let rate = 1; 
+
+                    try {
+                        // Public API request (Frankfurter API)
+                        const res = await fetch(`https://api.frankfurter.app/latest?from=${foreign}&to=${home}`);
+                        const data = await res.json();
+                        if (data && data.rates && data.rates[home]) {
+                            rate = data.rates[home];
+                        }
+                    } catch (e) {
+                        console.warn('Could not fetch live rate, defaulting to 1 or manual entry.', e);
+                    }
+
                     const newTrip = {
                         id: Date.now().toString(),
                         name: this.newTripForm.name,
-                        homeCurrency: this.newTripForm.homeCurrency.toUpperCase(),
-                        foreignCurrency: this.newTripForm.foreignCurrency.toUpperCase(),
-                        exchangeRate: Number(this.newTripForm.exchangeRate) || 1,
+                        homeCurrency: home,
+                        foreignCurrency: foreign,
+                        exchangeRate: Number(rate.toFixed(4)),
                         expenses: []
                     };
+
                     this.trips.push(newTrip);
                     this.activeTripId = newTrip.id;
                     this.newTripForm.name = '';
                     this.openNewTripModal = false;
+                },
+
+                async fetchLiveRate() {
+                    if (!this.activeTrip) return;
+                    this.isFetching = true;
+                    try {
+                        const home = this.activeTrip.homeCurrency;
+                        const foreign = this.activeTrip.foreignCurrency;
+                        const res = await fetch(`https://api.frankfurter.app/latest?from=${foreign}&to=${home}`);
+                        const data = await res.json();
+                        if (data && data.rates && data.rates[home]) {
+                            this.activeTrip.exchangeRate = Number(data.rates[home].toFixed(4));
+                            this.trips = [...this.trips];
+                        } else {
+                            alert('Could not retrieve latest rate for this currency pair.');
+                        }
+                    } catch (e) {
+                        alert('Network error while updating exchange rate.');
+                    } finally {
+                        this.isFetching = false;
+                    }
                 },
 
                 deleteCurrentTrip() {
@@ -266,7 +310,6 @@
                         date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
                     };
                     this.activeTrip.expenses.unshift(newExp);
-                    // trigger reactivity update
                     this.trips = [...this.trips];
                 },
 
@@ -276,7 +319,7 @@
                 },
 
                 editRate() {
-                    const newRate = prompt('Enter new exchange rate (1 ' + this.activeTrip.foreignCurrency + ' = ? ' + this.activeTrip.homeCurrency + '):', this.activeTrip.exchangeRate);
+                    const newRate = prompt('Enter custom exchange rate (1 ' + this.activeTrip.foreignCurrency + ' = ? ' + this.activeTrip.homeCurrency + '):', this.activeTrip.exchangeRate);
                     if (newRate !== null && !isNaN(newRate) && newRate > 0) {
                         this.activeTrip.exchangeRate = Number(newRate);
                         this.trips = [...this.trips];
